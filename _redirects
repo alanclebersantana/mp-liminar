@@ -1,0 +1,6 @@
+# Netlify — o domínio sem www vai para o com www
+http://mpliminar.com.br/*    https://www.mpliminar.com.br/:splat   301!
+https://mpliminar.com.br/*   https://www.mpliminar.com.br/:splat   301!
+
+# app de página única
+/*    /index.html   200

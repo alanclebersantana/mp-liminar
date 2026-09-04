@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Atualizar o Milhas Plus</title>
+<style>
+  :root{ --navy:#12304C; --gold:#F2C230; --green:#16A34A; --muted:#6B7C8C; --line:#DDE3EA; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--navy);color:#0E2436;min-height:100vh;
+    display:grid;place-items:center;padding:22px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  .caixa{background:#fff;border-radius:16px;padding:28px;width:min(460px,100%);
+    box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .marca{font-weight:900;font-size:17px;letter-spacing:.02em;color:var(--navy)}
+  .marca span{color:var(--gold)}
+  h1{font-size:20px;margin:16px 0 6px;color:var(--navy)}
+  p{font-size:14px;line-height:1.6;color:var(--muted);margin:0 0 14px}
+  .log{background:#F4F7FA;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.7;
+    color:#2B3E51;margin:16px 0;white-space:pre-wrap;word-break:break-word}
+  .ok{color:#0F7A38;font-weight:700}
+  .btn{display:block;width:100%;text-align:center;text-decoration:none;
+    background:var(--navy);color:#fff;border:0;border-radius:10px;padding:13px;
+    font-size:15px;font-weight:700;cursor:pointer;margin-top:10px}
+  .btn.alt{background:#fff;color:var(--navy);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+  <div class="caixa">
+    <div class="marca">MILHAS <span>PLUS</span></div>
+    <h1>Atualizar o app</h1>
+    <p>Esta página apaga a cópia do app guardada neste navegador e força o download da versão
+       publicada. Seus dados na nuvem não são afetados.</p>
+
+    <div class="log" id="log">Verificando…</div>
+
+    <button class="btn" id="btnLimpar">Limpar e atualizar</button>
+    <a class="btn alt" href="index.html">Abrir o app</a>
+  </div>
+
+<script>
+const log = document.getElementById('log');
+const escreve = (t, ok) => { log.innerHTML += (log.innerHTML ? '\n' : '') + (ok ? '<span class="ok">'+t+'</span>' : t); };
+
+async function diagnostico(){
+  log.innerHTML = '';
+  const regs = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistrations() : [];
+  escreve('Service workers registrados: ' + regs.length);
+  const nomes = window.caches ? await caches.keys() : [];
+  escreve('Caches guardados: ' + (nomes.length ? nomes.join(', ') : 'nenhum'));
+}
+
+document.getElementById('btnLimpar').onclick = async () => {
+  log.innerHTML = '';
+  try{
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for(const r of regs){ await r.unregister(); }
+      escreve('Service workers removidos: ' + regs.length, true);
+    }
+    if(window.caches){
+      const nomes = await caches.keys();
+      for(const n of nomes){ await caches.delete(n); }
+      escreve('Caches apagados: ' + nomes.length, true);
+    }
+    escreve('Pronto. Abrindo o app…', true);
+    setTimeout(()=>location.replace('index.html?v=' + Date.now()), 1200);
+  }catch(e){
+    escreve('Erro: ' + e.message);
+  }
+};
+
+diagnostico();
+</script>
+</body>
+</html>

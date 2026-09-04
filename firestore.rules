@@ -1,0 +1,118 @@
+rules_version = '2';
+
+// ============================================================
+//  Central Milhas Plus — regras do Firestore
+//
+//  O administrador enxerga tudo. O parceiro enxerga apenas os
+//  documentos que carregam o e-mail dele no campo respEmail, e
+//  nunca as coleções que contêm custo.
+//
+//  IMPORTANTE — por que as comparações são "cruas":
+//  numa consulta (list), o Firestore não filtra os documentos:
+//  ele confere se os filtros da consulta garantem a regra. Por
+//  isso a condição precisa ser exatamente
+//      resource.data.<campo> == request.auth.token.email
+//  para casar com  where('<campo>','==', email)  no app.
+//  Qualquer transformação (.lower()) ou verificação extra no
+//  meio (!= null, != '') impede esse casamento e a consulta
+//  inteira é negada. O app grava os e-mails já em minúsculas.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function admin() {
+      return logado() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ---------- quem é administrador ----------
+    // Crie o primeiro pelo console:  admins/<UID>  { }
+    // Ninguém consegue se promover pelo app.
+    match /admins/{uid} {
+      allow read:  if logado() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------- parceiros ----------
+    // O parceiro consulta com where('email','==', seuEmail).
+    // No 1º acesso pode gravar o próprio e-mail no cadastro que
+    // ainda está vago — e nada além desse campo.
+    match /parceiros/{id} {
+      allow read: if admin()
+                  || resource.data.email == request.auth.token.email;
+
+      allow create, delete: if admin();
+
+      allow update: if admin()
+        || (
+          logado()
+          && resource.data.email == ''
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email'])
+        );
+    }
+
+    // ---------- contas ----------
+    match /contas/{id} {
+      allow read:  if admin() || resource.data.respEmail == request.auth.token.email;
+      allow write: if admin();
+    }
+
+    // ---------- lançamentos ----------
+    // Sem campos de custo: milhas, valor e resultado.
+    match /lancamentos/{id} {
+      allow read:  if admin() || resource.data.respEmail == request.auth.token.email;
+      allow write: if admin();
+    }
+
+    // ---------- custo por lançamento ----------
+    // Separado justamente para poder ser negado ao parceiro.
+    match /custos/{id} {
+      allow read, write: if admin();
+    }
+
+    // ---------- operações ----------
+    // Contém custo total e CPM de custo: administrador apenas.
+    match /operacoes/{id} {
+      allow read, write: if admin();
+    }
+
+    // ---------- pagamentos ----------
+    match /pagamentos/{id} {
+      allow read:  if admin() || resource.data.respEmail == request.auth.token.email;
+      allow write: if admin();
+    }
+
+    // ---------- configuração compartilhada ----------
+    // Companhias, fornecedores e preferências do relatório: o parceiro
+    // precisa ler para o app montar as telas dele.
+    match /config/geral {
+      allow read:  if logado();
+      allow write: if admin();
+    }
+
+    // ---------- configuração reservada ----------
+    // Chave da API de leitura de extrato. Fica separada de config/geral
+    // justamente para não ser lida por quem não é administrador.
+    match /config/privado {
+      allow read, write: if admin();
+    }
+
+    // ---------- convites ----------
+    // Leitura só por id exato, nunca listagem.
+    match /convites/{codigo} {
+      allow get:   if logado();
+      allow list:  if admin();
+      allow write: if admin();
+    }
+
+    // ---------- porta fechada ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
