@@ -1669,6 +1669,15 @@ const INVESTIDORES = ['MILHAS PLUS','PARCEIRO'];
 const opcoesInvestidor = sel => INVESTIDORES.map(i=>
   `<option value="${i}" ${i===sel?'selected':''}>${i}</option>`).join('');
 
+/* Quem bancou a operação decide o que o parceiro recebe no fim:
+   MILHAS PLUS bancou → o parceiro fica com a diferença (valor − custo)
+   PARCEIRO    bancou → o parceiro recebe o valor integral, porque o custo
+                         saiu do bolso dele. */
+function calcResultado(valor, custo, investidor){
+  const v = +valor||0, c = +custo||0;
+  return investidor === 'PARCEIRO' ? v : v - c;
+}
+
 function nomesDe(lista){ return (lista||[]).map(x=>x.nome).join(' + ') || '—'; }
 
 function migrar(){
@@ -1690,15 +1699,20 @@ function migrar(){
   if(typeof S.chaveIA !== 'string') S.chaveIA = '';
   S.responsaveis.forEach(r=>{ if(r.tel===undefined) r.tel=''; if(r.codigo===undefined) r.codigo=''; if(r.email===undefined) r.email=''; });
   S.lancamentos.forEach(l=>{
-    if(l.resultado===undefined) l.resultado = +l.valor||0;
+    if(l.valor===undefined)  l.valor=0;
     if(l.milhas===undefined) l.milhas=0;
-    if(l.custo===undefined) l.custo=0;
+    if(l.custo===undefined)  l.custo=0;
     // lançamentos antigos herdam o investidor que estava na operação
     if(!l.investidor){
       const o = S.operacoes.find(x=>x.id===l.operacaoId);
       const antigo = o && (o.investidor||'').split(' + ')[0];
       l.investidor = INVESTIDORES.includes(antigo) ? antigo : INVESTIDORES[0];
     }
+    if(l.resultado===undefined) l.resultado = +l.valor||0;
+    // quando o parceiro bancou, o que ele recebe é o valor integral — e isso
+    // não depende do custo, que no portal do parceiro nem é carregado.
+    // Nos lançamentos da Milhas Plus o resultado já veio calculado.
+    if(l.investidor === 'PARCEIRO') l.resultado = +l.valor||0;
   });
 }
 migrar();
@@ -2380,7 +2394,7 @@ function recalcularOperacao(o){
     l.cpmVenda=o.cpmVenda; l.cpmCusto=cpmCusto;
     l.valor = l.milhas/1000*o.cpmVenda;
     l.custo = l.milhas/1000*cpmCusto;
-    l.resultado = l.valor - l.custo;
+    l.resultado = calcResultado(l.valor, l.custo, l.investidor);
   });
   o.status='lancada';
 }
@@ -2419,7 +2433,11 @@ function abrirLancar(id){
   // trocar o investidor de uma conta já lançada salva na hora
   el('contasPart').querySelectorAll('[data-inv]').forEach(s=>s.onchange=()=>{
     const l = S.lancamentos.find(x=>x.operacaoId===opAtual.id && x.contaId===s.dataset.inv);
-    if(l){ l.investidor = s.value; save(); renderOps(); renderLancamentos(); }
+    if(l){
+      l.investidor = s.value;
+      l.resultado  = calcResultado(l.valor, l.custo, l.investidor);
+      save(); calcLancar(); renderOps(); renderLancamentos();
+    }
   });
   calcLancar();
   el('boxLancar').scrollIntoView({behavior:'smooth',block:'start'});
@@ -2440,13 +2458,19 @@ function calcLancar(){
                  : (milhas ? opAtual.custoTotal/(milhas/1000) : 0);
   const valor = milhas/1000*opAtual.cpmVenda;
   const custo = milhas/1000*cpmCusto;
+  // o total a receber respeita quem bancou cada conta
+  const receber = sel.reduce((a,s)=>{
+    const v = s.milhas/1000*opAtual.cpmVenda, c = s.milhas/1000*cpmCusto;
+    return a + calcResultado(v, c, s.investidor);
+  },0);
+  const nParc = sel.filter(s=>s.investidor==='PARCEIRO').length;
   el('lancarTotais').innerHTML = `
     <div><span>Contas</span><b>${sel.length}</b></div>
     <div><span>Milhas</span><b>${num(milhas)}</b></div>
     <div><span>CPM custo (calc.)</span><b>${cpmCusto?money(cpmCusto):'—'}</b></div>
     <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
     <div><span>Custo</span><b class="r">${money(custo)}</b></div>
-    <div><span>Resultado</span><b class="${valor-custo>=0?'g':'r'}">${money(valor-custo)}</b></div>
+    <div><span>A receber${nParc?` · ${nParc} bancada${nParc===1?'':'s'} pelo parceiro`:''}</span><b class="${receber>=0?'g':'r'}">${money(receber)}</b></div>
     <div class="push"></div>`;
 }
 el('btnMarcarTodas').onclick = ()=>{ el('contasPart').querySelectorAll('[data-part]').forEach(i=>i.checked=true); calcLancar(); };
@@ -2467,7 +2491,8 @@ el('btnLancarOp').onclick = ()=>{
     S.lancamentos.push({id:uid(),operacaoId:opAtual.id,opRef:opAtual.ref,opTipo:opAtual.tipo,
       contaId:s.contaId,data:opAtual.data,cia:opAtual.cia,fonte:opAtual.fonte,
       investidor:s.investidor,
-      milhas:s.milhas,cpmVenda:opAtual.cpmVenda,cpmCusto,valor,custo,resultado:valor-custo,obs:''});
+      milhas:s.milhas,cpmVenda:opAtual.cpmVenda,cpmCusto,valor,custo,
+      resultado:calcResultado(valor,custo,s.investidor),obs:''});
   });
   opAtual.status='lancada';
   save();
@@ -2549,7 +2574,11 @@ function renderLancamentos(){
   // o investidor pode ser trocado a qualquer momento, conta a conta
   box.querySelectorAll('[data-linv]').forEach(s=>s.onchange=()=>{
     const l = S.lancamentos.find(x=>x.id===s.dataset.linv);
-    if(l){ l.investidor = s.value; save(); renderOps(); }
+    if(l){
+      l.investidor = s.value;
+      l.resultado  = calcResultado(l.valor, l.custo, l.investidor);
+      save(); refreshAll();
+    }
   });
 }
 
@@ -2937,7 +2966,7 @@ el('salvarClube').onclick = ()=>{
     if(o) recalcularOperacao(o);          // refaz valor, custo e o rateio
     else {
       l.valor = l.milhas/1000*(l.cpmVenda||0);
-      l.resultado = l.valor - (l.custo||0);
+      l.resultado = calcResultado(l.valor, l.custo, l.investidor);
     }
   }
   save(); el('dlgClube').close(); refreshAll();
