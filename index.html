@@ -171,6 +171,9 @@ table.list tr:last-child td{border-bottom:0}
 .rowbtn{background:none;border:0;cursor:pointer;color:var(--muted);padding:4px}
 .rowbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rowbtn:hover{color:var(--navy-txt)}
+/* linha que acabou de ser recalculada */
+@keyframes recalcFlash{from{background:rgba(22,163,74,.22)}to{background:transparent}}
+tr.recalc>td{animation:recalcFlash .95s ease-out}
 .money{font-variant-numeric:tabular-nums;font-weight:700;color:var(--green-dark);white-space:nowrap}
 .money.neg{color:#C0392B}
 .chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:calc(11.5px * var(--escala));font-weight:700;background:var(--sutil);color:var(--navy-txt)}
@@ -1678,6 +1681,15 @@ function calcResultado(valor, custo, investidor){
   return investidor === 'PARCEIRO' ? v : v - c;
 }
 
+/* destaque curto na linha que acabou de mudar de valor */
+function piscar(linha){
+  if(!linha) return;
+  linha.classList.remove('recalc');
+  void linha.offsetWidth;          // reinicia a animação se clicar duas vezes
+  linha.classList.add('recalc');
+  setTimeout(()=>linha.classList.remove('recalc'), 1000);
+}
+
 function nomesDe(lista){ return (lista||[]).map(x=>x.nome).join(' + ') || '—'; }
 
 function migrar(){
@@ -2417,7 +2429,7 @@ function abrirLancar(id){
   `<span class="gold">${opAtual.status==='lancada'?'Lançada':'Aberta'}</span>`;
 
   el('contasPart').innerHTML = `<div style="overflow-x:auto"><table class="list">
-    <thead><tr><th></th><th>Conta</th><th>Parceiro</th><th>Investidor</th><th style="text-align:right">Milhas da promo</th></tr></thead>
+    <thead><tr><th></th><th>Conta</th><th>Parceiro</th><th>Investidor</th><th style="text-align:right">Milhas da promo</th><th style="text-align:right">A receber</th></tr></thead>
     <tbody>${S.contas.map(c=>{
       const j = jaLancado.find(l=>l.contaId===c.id);
       return `<tr>
@@ -2426,18 +2438,23 @@ function abrirLancar(id){
         <td style="color:var(--muted)">${esc(respNome(c.respId))}</td>
         <td><select data-inv="${c.id}" style="min-width:140px">${opcoesInvestidor(j ? j.investidor : INVESTIDORES[0])}</select></td>
         <td style="text-align:right"><input type="number" data-milhas="${c.id}" value="${j? j.milhas : (c.milhasPadrao||0)}" style="width:110px;text-align:right"></td>
+        <td data-rec="${c.id}" class="money" style="text-align:right;white-space:nowrap">—</td>
       </tr>`;
     }).join('')}</tbody></table></div>`;
 
   el('contasPart').querySelectorAll('input').forEach(i=>{ i.oninput = calcLancar; i.onchange = calcLancar; });
-  // trocar o investidor de uma conta já lançada salva na hora
+  // trocar o investidor recalcula na hora: a prévia acompanha mesmo antes de
+  // lançar, e quando a conta já está lançada o valor é salvo e propagado
   el('contasPart').querySelectorAll('[data-inv]').forEach(s=>s.onchange=()=>{
-    const l = S.lancamentos.find(x=>x.operacaoId===opAtual.id && x.contaId===s.dataset.inv);
+    const l = opAtual && S.lancamentos.find(x=>x.operacaoId===opAtual.id && x.contaId===s.dataset.inv);
     if(l){
       l.investidor = s.value;
       l.resultado  = calcResultado(l.valor, l.custo, l.investidor);
-      save(); calcLancar(); renderOps(); renderLancamentos();
+      save();
+      renderOps(); renderLancamentos(); renderFinanceiro(); renderKpis(); renderExtrato();
     }
+    calcLancar();
+    piscar(s.closest('tr'));
   });
   calcLancar();
   el('boxLancar').scrollIntoView({behavior:'smooth',block:'start'});
@@ -2458,11 +2475,18 @@ function calcLancar(){
                  : (milhas ? opAtual.custoTotal/(milhas/1000) : 0);
   const valor = milhas/1000*opAtual.cpmVenda;
   const custo = milhas/1000*cpmCusto;
-  // o total a receber respeita quem bancou cada conta
-  const receber = sel.reduce((a,s)=>{
+  // o que cada conta rende, já pela regra do investidor dela
+  const porConta = new Map(sel.map(s=>{
     const v = s.milhas/1000*opAtual.cpmVenda, c = s.milhas/1000*cpmCusto;
-    return a + calcResultado(v, c, s.investidor);
-  },0);
+    return [s.contaId, calcResultado(v, c, s.investidor)];
+  }));
+  el('contasPart').querySelectorAll('[data-rec]').forEach(td=>{
+    const r = porConta.get(td.dataset.rec);
+    td.textContent = r===undefined ? '—' : money(r);
+    td.style.color = (r!==undefined && r<0) ? '#B4232A' : '';
+    td.style.opacity = r===undefined ? '.45' : '1';
+  });
+  const receber = sel.reduce((a,s)=>a + porConta.get(s.contaId), 0);
   const nParc = sel.filter(s=>s.investidor==='PARCEIRO').length;
   el('lancarTotais').innerHTML = `
     <div><span>Contas</span><b>${sel.length}</b></div>
@@ -2470,7 +2494,7 @@ function calcLancar(){
     <div><span>CPM custo (calc.)</span><b>${cpmCusto?money(cpmCusto):'—'}</b></div>
     <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
     <div><span>Custo</span><b class="r">${money(custo)}</b></div>
-    <div><span>A receber${nParc?` · ${nParc} bancada${nParc===1?'':'s'} pelo parceiro`:''}</span><b class="${receber>=0?'g':'r'}">${money(receber)}</b></div>
+    <div><span>A receber${nParc?` · ${nParc} pelo parceiro`:''}</span><b class="${receber>=0?'g':'r'}">${money(receber)}</b></div>
     <div class="push"></div>`;
 }
 el('btnMarcarTodas').onclick = ()=>{ el('contasPart').querySelectorAll('[data-part]').forEach(i=>i.checked=true); calcLancar(); };
@@ -2529,7 +2553,7 @@ function renderLancamentos(){
       <div><span>Milhas</span><b>${num(t('milhas'))}</b></div>
       <div><span>Valor</span><b>${money(t('valor'))}</b></div>
       <div><span>Custo</span><b class="r">${money(t('custo'))}</b></div>
-      <div><span>Resultado</span><b class="g">${money(t('resultado'))}</b></div>
+      <div><span>Resultado</span><b class="g" data-tot-res>${money(t('resultado'))}</b></div>
       <div class="push"></div>
     </div>
     <div style="overflow-x:auto"><table class="list">
@@ -2548,7 +2572,7 @@ function renderLancamentos(){
           <td style="text-align:right;font-variant-numeric:tabular-nums">${num(l.milhas)}</td>
           <td style="text-align:right;font-variant-numeric:tabular-nums">${money(l.valor)}</td>
           <td style="text-align:right;color:#B4232A;font-variant-numeric:tabular-nums">${l.custo?money(l.custo):'—'}</td>
-          <td style="text-align:right" class="money">${money(l.resultado)}</td>
+          <td style="text-align:right" class="money" data-res="${l.id}">${money(l.resultado)}</td>
           <td style="text-align:right;white-space:nowrap">
             <button class="rowbtn" data-editlanc="${l.id}" title="Editar lançamento">
               <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
@@ -2574,11 +2598,17 @@ function renderLancamentos(){
   // o investidor pode ser trocado a qualquer momento, conta a conta
   box.querySelectorAll('[data-linv]').forEach(s=>s.onchange=()=>{
     const l = S.lancamentos.find(x=>x.id===s.dataset.linv);
-    if(l){
-      l.investidor = s.value;
-      l.resultado  = calcResultado(l.valor, l.custo, l.investidor);
-      save(); refreshAll();
-    }
+    if(!l) return;
+    l.investidor = s.value;
+    l.resultado  = calcResultado(l.valor, l.custo, l.investidor);
+    save();
+    // atualiza a célula e os totais no lugar: a tabela não pisca nem perde a rolagem
+    const cel = box.querySelector(`[data-res="${l.id}"]`);
+    if(cel) cel.textContent = money(l.resultado);
+    const tot = box.querySelector('[data-tot-res]');
+    if(tot) tot.textContent = money(ls.reduce((a,x)=>a+(+x.resultado||0),0));
+    piscar(s.closest('tr'));
+    refreshMenosLancamentos();
   });
 }
 
@@ -3919,6 +3949,14 @@ function ligarFiltros(){
   el('mesRef').onchange = ()=>{ el('lancMes').value=el('mesRef').value; refreshAll(); };
   el('portalResp').onchange = renderPortal;
   el('extConta').onchange = renderExtrato;
+}
+
+/* tudo menos a tabela de lançamentos, que se atualiza célula a célula */
+function refreshMenosLancamentos(){
+  renderKpis(); renderReport(); renderPortal();
+  if(parceiroLogado) return;
+  renderOps(); renderFinanceiro(); renderExtrato(); renderLateral();
+  if(el('p-dash').classList.contains('on')) renderDash();
 }
 
 function refreshAll(){
