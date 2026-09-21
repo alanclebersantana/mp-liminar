@@ -532,6 +532,7 @@ body{transition:none}
 
 .dash-cols{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
 @media (max-width:1080px){ .dash-cols{grid-template-columns:1fr} }
+.dash-full{grid-column:1/-1}
 .dash-card{background:var(--card);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}
 .dash-card h3{font-size:calc(14.5px * var(--escala));font-weight:700;padding:15px 18px;
   border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;color:var(--ink)}
@@ -1234,6 +1235,16 @@ body.parceiro .subnav{display:none}
 
     <div class="box">
       <h3>Operações cadastradas</h3>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field"><label for="opfDe">Data de</label><input type="date" id="opfDe"></div>
+        <div class="field"><label for="opfAte">Data até</label><input type="date" id="opfAte"></div>
+        <div class="field"><label for="opfBusca">Promoção</label><input type="text" id="opfBusca" placeholder="Buscar pelo nome"></div>
+        <div class="field"><label for="opfCia">Companhia</label><select id="opfCia"></select></div>
+        <div class="field"><label for="opfFonte">Fornecedor</label><select id="opfFonte"></select></div>
+        <div class="field"><label for="opfStatus">Status</label><select id="opfStatus">
+          <option value="todos">Todos</option><option value="aberta">Aberta</option><option value="lancada">Lançada</option></select></div>
+      </div>
+      <div style="margin-bottom:12px"><button class="btn alt" id="opfLimpar" type="button">Limpar filtros</button></div>
       <div id="listaOps"></div>
     </div>
 
@@ -1256,6 +1267,8 @@ body.parceiro .subnav{display:none}
     <div class="box">
       <div class="grid2">
         <div class="field"><label for="lancMes">Mês</label><input type="month" id="lancMes"></div>
+        <div class="field"><label for="lancDe">Data de</label><input type="date" id="lancDe"></div>
+        <div class="field"><label for="lancAte">Data até</label><input type="date" id="lancAte"></div>
         <div class="field"><label for="lancResp">Parceiro</label><select id="lancResp"></select></div>
         <div class="field"><label for="lancConta">Conta</label><select id="lancConta"></select></div>
         <div class="field"><label for="lancCia">Companhia</label><select id="lancCia"></select></div>
@@ -1510,7 +1523,8 @@ body.parceiro .subnav{display:none}
       <div class="field" id="wrapEdClValor"><label for="edClValor">Valor do clube (R$)</label><input type="number" id="edClValor" step="0.01"></div>
       <div class="field"><label for="edClPontos" id="rotuloPontos">Pontos recebidos</label><input type="number" id="edClPontos"></div>
     </div>
-    <p class="hint" id="edLancAviso" style="margin:0"></p>
+    <div class="totbar" id="edLancPrevia" style="margin:12px 0 0"></div>
+    <p class="hint" id="edLancAviso" style="margin:8px 0 0"></p>
   </div>
   <div class="dlg-foot">
     <button class="btn danger" type="button" id="excluirClube" style="margin-right:auto">Excluir</button>
@@ -1639,16 +1653,13 @@ function seed(){
   const L = [];
   const lanc = (opId, pares) => {
     const op = O.find(o=>o.id===opId);
-    const totalMilhas = pares.reduce((a,[,m])=>a+m,0);
-    const cpmCusto = op.modo==='sem' ? 0
-                   : op.modo==='cpm' ? op.cpmCusto
-                   : (op.custoTotal / (totalMilhas/1000));
-    pares.forEach(([contaId,milhas])=>{
-      const valor = milhas/1000 * op.cpmVenda;
-      const custo = milhas/1000 * cpmCusto;
+    const calc = calcularOperacao(op, pares.map(([,milhas])=>({milhas, investidor:'MILHAS PLUS'})));
+    pares.forEach(([contaId],i)=>{
+      const x = calc.itens[i];
       L.push({id:uid(),operacaoId:opId,opRef:op.ref,opTipo:op.tipo,contaId,data:op.data,
-              cia:op.cia,fonte:op.fonte,milhas,cpmVenda:op.cpmVenda,cpmCusto,
-              valor,custo,resultado:valor-custo,obs:''});
+              cia:op.cia,fonte:op.fonte,investidor:x.investidor,milhas:x.milhas,
+              cpmVenda:op.cpmVenda,cpmCusto:x.cpmCusto,
+              valor:x.valor,custo:x.custo,resultado:x.resultado,obs:''});
     });
   };
   lanc('o1',[['c1',675000],['c2',675000],['c5',675000]]);
@@ -1677,8 +1688,70 @@ const opcoesInvestidor = sel => INVESTIDORES.map(i=>
    PARCEIRO    bancou → o parceiro recebe o valor integral, porque o custo
                          saiu do bolso dele. */
 function calcResultado(valor, custo, investidor){
-  const v = +valor||0, c = +custo||0;
-  return investidor === 'PARCEIRO' ? v : v - c;
+  const v = centavos(valor), c = centavos(custo);
+  return investidor === 'PARCEIRO' ? v : centavos(v - c);
+}
+
+/* =========================================================
+   MOTOR ÚNICO DE CÁLCULO DAS OPERAÇÕES
+   Todo lugar que calcula valor/custo de uma promoção passa por aqui
+   (lançar em lote, prévia, editar operação, editar lançamento, extrato).
+
+   Regras, sempre em centavos exatos:
+     valor da conta = milhas ÷ 1000 × CPM venda
+     custo da conta =
+       · modo "cpm"   → milhas ÷ 1000 × CPM custo
+       · modo "total" → custo total repartido pelas milhas de cada conta;
+                        a soma das contas bate CENTAVO A CENTAVO com o total
+       · modo "sem"   → 0
+     resultado = valor − custo  (ou valor integral, se o PARCEIRO bancou)
+   ========================================================= */
+function centavos(v){ return Math.round((+v||0)*100)/100; }
+
+/* reparte um total em centavos proporcionalmente aos pesos; as sobras
+   de arredondamento vão para as maiores frações, então Σ partes = total */
+function ratear(total, pesos){
+  const totalC = Math.round((+total||0)*100);
+  const soma = pesos.reduce((a,p)=>a+p,0);
+  if(!soma) return pesos.map(()=>0);
+  const brutos = pesos.map(p=>totalC*p/soma);
+  const partes = brutos.map(Math.floor);
+  let sobra = totalC - partes.reduce((a,p)=>a+p,0);
+  brutos.map((b,i)=>[b-partes[i], i]).sort((a,b)=>b[0]-a[0])
+        .forEach(([,i])=>{ if(sobra>0){ partes[i]++; sobra--; } });
+  return partes.map(c=>c/100);
+}
+
+/* op: {cpmVenda, modo, cpmCusto, custoTotal}
+   linhas: [{milhas, investidor}] → mesma ordem, com valor/custo/resultado */
+function calcularOperacao(op, linhas){
+  const milhas = linhas.map(l=>+l.milhas||0);
+  const totalMilhas = milhas.reduce((a,m)=>a+m,0);
+  const custos = op.modo==='total' ? ratear(op.custoTotal, milhas)
+               : op.modo==='cpm'   ? milhas.map(m=>centavos(m/1000*(+op.cpmCusto||0)))
+               : milhas.map(()=>0);
+  // CPM de custo da operação (informativo): no rateio é o custo total ÷ milheiros
+  const cpmCusto = op.modo==='cpm'   ? (+op.cpmCusto||0)
+                 : op.modo==='total' ? (totalMilhas ? (+op.custoTotal||0)/(totalMilhas/1000) : 0)
+                 : 0;
+  const itens = linhas.map((l,i)=>{
+    const valor = centavos(milhas[i]/1000*(+op.cpmVenda||0));
+    const custo = custos[i];
+    return {milhas:milhas[i], investidor:l.investidor, valor, custo, cpmCusto,
+            resultado: calcResultado(valor, custo, l.investidor)};
+  });
+  const soma = k => centavos(itens.reduce((a,x)=>a+x[k],0));
+  return {itens, cpmCusto, milhas:totalMilhas,
+          valor:soma('valor'), custo:soma('custo'), resultado:soma('resultado')};
+}
+
+/* custo na tabela: quando o parceiro bancou, o custo aparece riscado
+   porque não é descontado do resultado */
+function celulaCusto(l){
+  if(!l.custo) return '—';
+  return l.investidor==='PARCEIRO'
+    ? `<span style="text-decoration:line-through;opacity:.55" title="Bancado pelo parceiro: não desconta do resultado">${money(l.custo)}</span>`
+    : money(l.custo);
 }
 
 /* destaque curto na linha que acabou de mudar de valor */
@@ -2184,13 +2257,26 @@ function renderOps(){
   const box = el('listaOps');
   if(!S.operacoes.length){ box.innerHTML = '<div class="empty">Nenhuma operação cadastrada.</div>'; return; }
 
+  // filtros: período por dia, nome da promoção, CIA, fornecedor e status
+  const de=el('opfDe').value, ate=el('opfAte').value, busca=el('opfBusca').value.trim().toLowerCase(),
+        fCia=el('opfCia').value, fFonte=el('opfFonte').value, fStatus=el('opfStatus').value;
+  const filtrando = !!(de||ate||busca||fCia!=='todas'||fFonte!=='todas'||fStatus!=='todos');
+  const lista = S.operacoes.filter(o=>
+    (!de  || o.data>=de) && (!ate || o.data<=ate) &&
+    (!busca || (o.ref||'').toLowerCase().includes(busca) || (o.tipo||'').toLowerCase().includes(busca)) &&
+    (fCia==='todas' || o.cia===fCia) && (fFonte==='todas' || o.fonte===fFonte) &&
+    (fStatus==='todos' || o.status===fStatus));
+  if(!lista.length){ box.innerHTML = '<div class="empty">Nenhuma operação com esses filtros.</div>'; return; }
+
   // agrupa por mês, do mais recente para o mais antigo
   const porMes = {};
-  S.operacoes.forEach(o=>{ (porMes[mesKey(o.data)] ||= []).push(o); });
+  lista.forEach(o=>{ (porMes[mesKey(o.data)] ||= []).push(o); });
   const meses = Object.keys(porMes).sort().reverse();
 
   // na primeira vez, deixa aberto só o mês do painel
   if(!mesesAbertos.size) mesesAbertos.add(meses.includes(mesAtual()) ? mesAtual() : meses[0]);
+  // com filtro ativo, abre todos os meses que têm resultado
+  if(filtrando) meses.forEach(m=>mesesAbertos.add(m));
 
   const linha = o => {
     const usados = S.lancamentos.filter(l=>l.operacaoId===o.id);
@@ -2396,17 +2482,13 @@ el('excluirOp').onclick = ()=>{
 function recalcularOperacao(o){
   const ls = S.lancamentos.filter(l=>l.operacaoId===o.id);
   if(!ls.length){ o.status='aberta'; return; }
-  const totalMilhas = ls.reduce((a,l)=>a+(+l.milhas||0),0);
-  const cpmCusto = o.modo==='sem' ? 0
-                 : o.modo==='cpm' ? o.cpmCusto
-                 : (totalMilhas ? o.custoTotal/(totalMilhas/1000) : 0);
-  ls.forEach(l=>{
+  ls.forEach(l=>{ if(!l.investidor) l.investidor = INVESTIDORES[0]; });
+  const calc = calcularOperacao(o, ls);
+  ls.forEach((l,i)=>{
+    const x = calc.itens[i];
     l.data=o.data; l.cia=o.cia; l.fonte=o.fonte; l.opRef=o.ref; l.opTipo=o.tipo;
-    if(!l.investidor) l.investidor = INVESTIDORES[0];
-    l.cpmVenda=o.cpmVenda; l.cpmCusto=cpmCusto;
-    l.valor = l.milhas/1000*o.cpmVenda;
-    l.custo = l.milhas/1000*cpmCusto;
-    l.resultado = calcResultado(l.valor, l.custo, l.investidor);
+    l.cpmVenda=o.cpmVenda; l.cpmCusto=x.cpmCusto;
+    l.valor=x.valor; l.custo=x.custo; l.resultado=x.resultado;
   });
   o.status='lancada';
 }
@@ -2469,29 +2551,22 @@ function selecionadas(){
 function calcLancar(){
   if(!opAtual) return;
   const sel = selecionadas();
-  const milhas = sel.reduce((a,s)=>a+s.milhas,0);
-  const cpmCusto = opAtual.modo==='sem' ? 0
-                 : opAtual.modo==='cpm' ? opAtual.cpmCusto
-                 : (milhas ? opAtual.custoTotal/(milhas/1000) : 0);
-  const valor = milhas/1000*opAtual.cpmVenda;
-  const custo = milhas/1000*cpmCusto;
+  const calc = calcularOperacao(opAtual, sel);
+  const {milhas, cpmCusto, valor, custo} = calc;
   // o que cada conta rende, já pela regra do investidor dela
-  const porConta = new Map(sel.map(s=>{
-    const v = s.milhas/1000*opAtual.cpmVenda, c = s.milhas/1000*cpmCusto;
-    return [s.contaId, calcResultado(v, c, s.investidor)];
-  }));
+  const porConta = new Map(sel.map((s,i)=>[s.contaId, calc.itens[i].resultado]));
   el('contasPart').querySelectorAll('[data-rec]').forEach(td=>{
     const r = porConta.get(td.dataset.rec);
     td.textContent = r===undefined ? '—' : money(r);
     td.style.color = (r!==undefined && r<0) ? '#B4232A' : '';
     td.style.opacity = r===undefined ? '.45' : '1';
   });
-  const receber = sel.reduce((a,s)=>a + porConta.get(s.contaId), 0);
+  const receber = calc.resultado;
   const nParc = sel.filter(s=>s.investidor==='PARCEIRO').length;
   el('lancarTotais').innerHTML = `
     <div><span>Contas</span><b>${sel.length}</b></div>
     <div><span>Milhas</span><b>${num(milhas)}</b></div>
-    <div><span>CPM custo (calc.)</span><b>${cpmCusto?money(cpmCusto):'—'}</b></div>
+    <div><span>CPM custo (calc.)</span><b>${cpmCusto?'R$ '+cpmCusto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4}):'—'}</b></div>
     <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
     <div><span>Custo</span><b class="r">${money(custo)}</b></div>
     <div><span>A receber${nParc?` · ${nParc} pelo parceiro`:''}</span><b class="${receber>=0?'g':'r'}">${money(receber)}</b></div>
@@ -2505,18 +2580,15 @@ el('btnLancarOp').onclick = ()=>{
   if(!opAtual) return;
   const sel = selecionadas();
   if(!sel.length){ alert('Marque ao menos uma conta com milhas.'); return; }
-  const milhas = sel.reduce((a,s)=>a+s.milhas,0);
-  const cpmCusto = opAtual.modo==='sem' ? 0
-                 : opAtual.modo==='cpm' ? opAtual.cpmCusto
-                 : opAtual.custoTotal/(milhas/1000);
+  const calc = calcularOperacao(opAtual, sel);
   S.lancamentos = S.lancamentos.filter(l=>l.operacaoId!==opAtual.id);   // relança limpo
-  sel.forEach(s=>{
-    const valor = s.milhas/1000*opAtual.cpmVenda, custo = s.milhas/1000*cpmCusto;
+  sel.forEach((s,i)=>{
+    const x = calc.itens[i];
     S.lancamentos.push({id:uid(),operacaoId:opAtual.id,opRef:opAtual.ref,opTipo:opAtual.tipo,
       contaId:s.contaId,data:opAtual.data,cia:opAtual.cia,fonte:opAtual.fonte,
       investidor:s.investidor,
-      milhas:s.milhas,cpmVenda:opAtual.cpmVenda,cpmCusto,valor,custo,
-      resultado:calcResultado(valor,custo,s.investidor),obs:''});
+      milhas:x.milhas,cpmVenda:opAtual.cpmVenda,cpmCusto:x.cpmCusto,
+      valor:x.valor,custo:x.custo,resultado:x.resultado,obs:''});
   });
   opAtual.status='lancada';
   save();
@@ -2534,8 +2606,11 @@ function renderLancamentos(){
         cia=el('lancCia').value, fonte=el('lancFonte').value;
   const min = el('lancMin').value===''?null:parseFloat(el('lancMin').value);
   const max = el('lancMax').value===''?null:parseFloat(el('lancMax').value);
+  const de=el('lancDe').value, ate=el('lancAte').value;
   let ls = S.lancamentos.slice();
   if(mes) ls=ls.filter(l=>mesKey(l.data)===mes);
+  if(de)  ls=ls.filter(l=>l.data>=de);
+  if(ate) ls=ls.filter(l=>l.data<=ate);
   if(resp!=='todos'){ const set=contasDoResp(resp); ls=ls.filter(l=>set.has(l.contaId)); }
   if(conta!=='todas') ls=ls.filter(l=>l.contaId===conta);
   if(cia!=='todas') ls=ls.filter(l=>l.cia===cia);
@@ -2571,7 +2646,7 @@ function renderLancamentos(){
           <td><select data-linv="${l.id}" style="min-width:135px">${opcoesInvestidor(l.investidor)}</select></td>
           <td style="text-align:right;font-variant-numeric:tabular-nums">${num(l.milhas)}</td>
           <td style="text-align:right;font-variant-numeric:tabular-nums">${money(l.valor)}</td>
-          <td style="text-align:right;color:#B4232A;font-variant-numeric:tabular-nums">${l.custo?money(l.custo):'—'}</td>
+          <td style="text-align:right;color:#B4232A;font-variant-numeric:tabular-nums" data-cus="${l.id}">${celulaCusto(l)}</td>
           <td style="text-align:right" class="money" data-res="${l.id}">${money(l.resultado)}</td>
           <td style="text-align:right;white-space:nowrap">
             <button class="rowbtn" data-editlanc="${l.id}" title="Editar lançamento">
@@ -2605,6 +2680,8 @@ function renderLancamentos(){
     // atualiza a célula e os totais no lugar: a tabela não pisca nem perde a rolagem
     const cel = box.querySelector(`[data-res="${l.id}"]`);
     if(cel) cel.textContent = money(l.resultado);
+    const cus = box.querySelector(`[data-cus="${l.id}"]`);
+    if(cus) cus.innerHTML = celulaCusto(l);
     const tot = box.querySelector('[data-tot-res]');
     if(tot) tot.textContent = money(ls.reduce((a,x)=>a+(+x.resultado||0),0));
     piscar(s.closest('tr'));
@@ -2969,8 +3046,33 @@ function abrirEditarLanc(id){
   el('edLancAviso').textContent = clube ? ''
     : 'Valor e custo são recalculados pela operação. No modo “custo total”, mudar as milhas refaz o rateio entre as contas.';
 
+  previaEdLanc();
   el('dlgClube').showModal();
 }
+
+/* prévia ao vivo do diálogo: trocar investidor, milhas ou valor mostra na hora
+   quanto essa conta passa a render, pela mesma regra do motor de cálculo */
+function previaEdLanc(){
+  const l = S.lancamentos.find(x=>x.id===lancEditando); if(!l) return;
+  const inv = el('edClInvestidor').value, pontos = parseFloat(el('edClPontos').value)||0;
+  let valor, custo;
+  if(ehClube(l)){ valor = centavos(parseFloat(el('edClValor').value)||0); custo = 0; }
+  else{
+    const o = opById(l.operacaoId);
+    if(o){
+      const ls = S.lancamentos.filter(x=>x.operacaoId===o.id);
+      const calc = calcularOperacao(o, ls.map(x=>x.id===l.id ? {milhas:pontos, investidor:inv} : x));
+      ({valor, custo} = calc.itens[ls.findIndex(x=>x.id===l.id)]);
+    } else ({valor, custo} = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [{milhas:pontos, investidor:inv}]).itens[0]);
+  }
+  const res = ehClube(l) ? valor : calcResultado(valor, custo, inv);
+  el('edLancPrevia').innerHTML = `
+    <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
+    <div><span>Custo${inv==='PARCEIRO'&&custo?' · bancado pelo parceiro':''}</span><b class="r" style="${inv==='PARCEIRO'?'text-decoration:line-through;opacity:.6':''}">${custo?money(custo):'—'}</b></div>
+    <div><span>Resultado da conta</span><b class="${res>=0?'g':'r'}">${money(res)}</b></div>
+    <div class="push"></div>`;
+}
+['edClInvestidor','edClPontos','edClValor'].forEach(id=>{ el(id).addEventListener('input', previaEdLanc); el(id).addEventListener('change', previaEdLanc); });
 
 el('salvarClube').onclick = ()=>{
   const l = S.lancamentos.find(x=>x.id===lancEditando); if(!l) return;
@@ -2995,8 +3097,9 @@ el('salvarClube').onclick = ()=>{
     const o = opById(l.operacaoId);
     if(o) recalcularOperacao(o);          // refaz valor, custo e o rateio
     else {
-      l.valor = l.milhas/1000*(l.cpmVenda||0);
-      l.resultado = calcResultado(l.valor, l.custo, l.investidor);
+      // operação apagada: recalcula só esta conta com os CPMs que ela guardou
+      const x = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [l]).itens[0];
+      l.valor = x.valor; l.custo = x.custo; l.resultado = x.resultado;
     }
   }
   save(); el('dlgClube').close(); refreshAll();
@@ -3795,6 +3898,48 @@ function renderDash(){
 
     <div class="dash-cols">
       <section class="dash-card">
+        <h3>Por parceiro <span>a receber</span></h3>
+        <div class="dash-parc">
+          ${d.responsaveis.map(r=>`<div class="dash-p">
+            <div class="cab"><b>${esc(r.nome)}</b>
+              <span class="badge ${CLASSE_PGTO[r.situacao]}">${ROTULO_PGTO[r.situacao]}</span>
+              <span class="v">${money(r.saldo || r.total)}</span></div>
+            <div class="barra"><i style="width:${Math.max(3,r.pct).toFixed(1)}%;background:${r.cor||'#12304C'}"></i></div>
+          </div>`).join('')}
+        </div>
+        <div class="rodape"><span>Total a receber</span><span>${money(aPagar)}</span></div>
+      </section>
+
+      <section class="dash-card">
+        <h3>Resultado por companhia <span>participação</span></h3>
+        <div class="dash-parc">
+          ${d.cias.map(c=>`<div class="dash-p">
+            <div class="cab"><b style="color:${ciaColor(c.nome)}">${esc(c.nome)}</b>
+              <span class="v">${money(c.valor)}</span></div>
+            <div class="barra"><i style="width:${Math.max(3,c.pct).toFixed(1)}%;background:${ciaColor(c.nome)}"></i></div>
+          </div>`).join('')}
+        </div>
+        <div class="rodape"><span>Total</span><span style="color:var(--green-dark)">${money(d.total)}</span></div>
+      </section>
+
+
+      <section class="dash-card dash-full">
+        <h3>Contas com maior volume <span>${esc(mesLabel(mk_))}</span></h3>
+        <div class="conteudo">
+          <table>
+            <thead><tr><th>Conta</th><th>Parceiro</th><th class="n">Milhas</th><th class="n">Lanç.</th><th class="n">Resultado</th></tr></thead>
+            <tbody>${contasTop.map(a=>`<tr>
+              <td><b>${esc(a.conta.nome)}</b></td>
+              <td style="color:var(--muted)">${esc(respNome(a.conta.respId))}</td>
+              <td class="n">${num(a.milhas)}</td>
+              <td class="n">${a.qtd}</td>
+              <td class="n" style="color:var(--green-dark);font-weight:700">${money(a.total)}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="dash-card dash-full">
         <h3>Operações do mês <span>${d.operacoes.length} promoções · ${d.contas.reduce((a,c)=>a+c.qtd,0)} lançamentos</span></h3>
         <div class="conteudo">
           <table>
@@ -3811,47 +3956,6 @@ function renderDash(){
         </div>
         <div class="rodape"><span>Total do período</span>
           <span>${num(d.milhas)} milhas · <span style="color:var(--green-dark)">${money(d.total)}</span></span></div>
-      </section>
-
-      <section class="dash-card">
-        <h3>Por parceiro <span>a receber</span></h3>
-        <div class="dash-parc">
-          ${d.responsaveis.map(r=>`<div class="dash-p">
-            <div class="cab"><b>${esc(r.nome)}</b>
-              <span class="badge ${CLASSE_PGTO[r.situacao]}">${ROTULO_PGTO[r.situacao]}</span>
-              <span class="v">${money(r.saldo || r.total)}</span></div>
-            <div class="barra"><i style="width:${Math.max(3,r.pct).toFixed(1)}%;background:${r.cor||'#12304C'}"></i></div>
-          </div>`).join('')}
-        </div>
-        <div class="rodape"><span>Total a receber</span><span>${money(aPagar)}</span></div>
-      </section>
-
-      <section class="dash-card">
-        <h3>Contas com maior volume <span>${esc(mesLabel(mk_))}</span></h3>
-        <div class="conteudo">
-          <table>
-            <thead><tr><th>Conta</th><th>Parceiro</th><th class="n">Milhas</th><th class="n">Lanç.</th><th class="n">Resultado</th></tr></thead>
-            <tbody>${contasTop.map(a=>`<tr>
-              <td><b>${esc(a.conta.nome)}</b></td>
-              <td style="color:var(--muted)">${esc(respNome(a.conta.respId))}</td>
-              <td class="n">${num(a.milhas)}</td>
-              <td class="n">${a.qtd}</td>
-              <td class="n" style="color:var(--green-dark);font-weight:700">${money(a.total)}</td></tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="dash-card">
-        <h3>Resultado por companhia <span>participação</span></h3>
-        <div class="dash-parc">
-          ${d.cias.map(c=>`<div class="dash-p">
-            <div class="cab"><b style="color:${ciaColor(c.nome)}">${esc(c.nome)}</b>
-              <span class="v">${money(c.valor)}</span></div>
-            <div class="barra"><i style="width:${Math.max(3,c.pct).toFixed(1)}%;background:${ciaColor(c.nome)}"></i></div>
-          </div>`).join('')}
-        </div>
-        <div class="rodape"><span>Total</span><span style="color:var(--green-dark)">${money(d.total)}</span></div>
       </section>
     </div>`;
 }
@@ -3881,7 +3985,7 @@ document.querySelectorAll('.subnav button').forEach(b=>{
 });
 
 function preencherSelects(){
-  const keep={}; ['lancResp','lancConta','lancCia','lancFonte','portalResp','extConta','iaConta','opCia','opFonte','novaContaResp'].forEach(id=>keep[id]=el(id).value);
+  const keep={}; ['opfCia','opfFonte','lancResp','lancConta','lancCia','lancFonte','portalResp','extConta','iaConta','opCia','opFonte','novaContaResp'].forEach(id=>keep[id]=el(id).value);
   if(parceiroLogado){ el('portalResp').innerHTML = `<option value="${parceiroLogado}">${esc(respNome(parceiroLogado))}</option>`; }
   const minhas = parceiroLogado ? S.contas.filter(c=>c.respId===parceiroLogado) : S.contas;
   const optContas = minhas.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
@@ -3900,6 +4004,8 @@ function preencherSelects(){
   el('lancConta').innerHTML = '<option value="todas">Todas</option>'+optContas;
   el('lancCia').innerHTML   = '<option value="todas">Todas</option>'+optCias;
   el('lancFonte').innerHTML = '<option value="todas">Todos</option>'+optFontes;
+  el('opfCia').innerHTML    = '<option value="todas">Todas</option>'+optCias;
+  el('opfFonte').innerHTML  = '<option value="todas">Todos</option>'+optFontes;
   el('portalResp').innerHTML = optResps;
   el('extConta').innerHTML   = optContas;
   el('iaConta').innerHTML    = optContas;
@@ -3935,6 +4041,22 @@ function ligarFiltros(){
 
   ['lancMes','lancConta','lancCia','lancFonte'].forEach(id=>el(id).onchange=renderLancamentos);
   ['lancMin','lancMax'].forEach(id=>el(id).oninput=renderLancamentos);
+  // período por dia: ao usar as datas o filtro de mês sai, para o período poder atravessar meses
+  ['lancDe','lancAte'].forEach(id=>el(id).onchange=()=>{
+    if(el('lancDe').value || el('lancAte').value) el('lancMes').value='';
+    renderLancamentos();
+  });
+  el('lancMes').onchange = ()=>{
+    if(el('lancMes').value){ el('lancDe').value=''; el('lancAte').value=''; }
+    renderLancamentos();
+  };
+  ['opfDe','opfAte','opfCia','opfFonte','opfStatus'].forEach(id=>el(id).onchange=renderOps);
+  el('opfBusca').oninput = renderOps;
+  el('opfLimpar').onclick = ()=>{
+    ['opfDe','opfAte','opfBusca'].forEach(id=>el(id).value='');
+    el('opfCia').value='todas'; el('opfFonte').value='todas'; el('opfStatus').value='todos';
+    renderOps();
+  };
   el('lancResp').onchange = ()=>{
     const r=el('lancResp').value;
     const cs = r==='todos' ? S.contas : S.contas.filter(c=>(c.respId||'')===r);
@@ -3944,9 +4066,10 @@ function ligarFiltros(){
   el('lancLimpar').onclick = ()=>{
     el('lancResp').value='todos'; el('lancConta').value='todas'; el('lancCia').value='todas';
     el('lancFonte').value='todas'; el('lancMin').value=''; el('lancMax').value='';
+    el('lancDe').value=''; el('lancAte').value='';
     preencherSelects(); renderLancamentos();
   };
-  el('mesRef').onchange = ()=>{ el('lancMes').value=el('mesRef').value; refreshAll(); };
+  el('mesRef').onchange = ()=>{ el('lancMes').value=el('mesRef').value; el('lancDe').value=''; el('lancAte').value=''; refreshAll(); };
   el('portalResp').onchange = renderPortal;
   el('extConta').onchange = renderExtrato;
 }
