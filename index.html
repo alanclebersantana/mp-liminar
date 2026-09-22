@@ -31,7 +31,7 @@
   window.MP_USA_FIREBASE = !!window.MP_FIREBASE.apiKey;
 
   // carimbo da publicação — aparece em Mais → Ajustes → Versão do app
-  window.MP_VERSAO = "2026.09.22-1500";
+  window.MP_VERSAO = "2026.09.22-2100";
 
   // Chave da API do Google Gemini, usada na leitura de extrato.
   // Fica gravada aqui, no próprio app: vale para todos os aparelhos,
@@ -351,6 +351,68 @@ dialog::backdrop{background:rgba(10,30,50,.45)}
   .rcard{break-inside:avoid;box-shadow:none}
 }
 
+
+/* ================= FECHAMENTO — layout limpo ================= */
+#report{background:#fff}
+.fx{color:#0E2436;padding:6px 8px 4px}
+.fx-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid #12304C;padding-bottom:10px}
+.fx-id{display:flex;align-items:center;gap:10px}
+.fx-logo{width:38px;height:38px;border-radius:9px;object-fit:contain;flex:none}
+.fx-marca{font-size:10px;letter-spacing:.16em;color:#B8912A;font-weight:800}
+.fx-titulo{font-size:calc(17px * var(--escala));font-weight:800;line-height:1.2}
+.fx-hero{text-align:right}
+.fx-hero span{display:block;font-size:11px;color:#6B7C8C}
+.fx-hero b{font-size:calc(26px * var(--escala));font-weight:800;color:#0F7A38;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fx-stats{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 2px;font-size:12px;color:#4A5B6C}
+.fx-stats b{color:#0E2436}
+.fx-filtros{font-size:11px;color:#6B7C8C;margin-top:4px}
+.fx-sec{margin-top:16px;break-inside:avoid}
+.fx-sec.fx-quebra{break-inside:auto}
+.fx-sec h4{margin:0 0 4px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#6B7C8C;font-weight:800}
+.fx-mut{color:#6B7C8C;font-weight:400;font-size:.92em}
+.fx-neg{color:#B4232A !important}
+.fx-cia{display:grid;grid-template-columns:80px 1fr 46px 100px;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #E6EBF0;font-size:12.5px}
+.fx-cia-n{font-weight:800}
+.fx-bar{height:6px;border-radius:4px;background:#EEF1F5;overflow:hidden}
+.fx-bar i{display:block;height:100%;border-radius:4px}
+.fx-pct{text-align:right;color:#6B7C8C;font-size:11.5px}
+.fx-cia b{text-align:right;font-variant-numeric:tabular-nums;color:#0F7A38}
+.fx-tab{width:100%;border-collapse:collapse;font-size:calc(12px * var(--escala));table-layout:fixed}
+.fx-tab th{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:#6B7C8C;text-align:left;font-weight:800;padding:6px 6px;border-bottom:1px solid #D5DDE5}
+.fx-tab td{padding:6px 6px;border-bottom:1px solid #E6EBF0;vertical-align:top;overflow:hidden;text-overflow:ellipsis}
+.fx-tab tr{break-inside:avoid}
+.fx-tab .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-tab tfoot td{font-weight:800;border-bottom:0;border-top:2px solid #12304C;padding-top:8px}
+.fx-tab tfoot td.n:last-child{color:#0F7A38}
+.fx-custo{color:#B4232A}
+.fx-chip{display:inline-block;font-size:10px;font-weight:800;padding:1px 8px;border-radius:99px;background:#FDF3DC;color:#8A5A0B}
+.fx-chip.pago{background:#E3F4EA;color:#0F7A38}
+.fx-chip.parcial{background:#E6EEF8;color:#1F4F86}
+.fx-ext .fx-g td{background:#F4F7FA;cursor:pointer;border-bottom:1px solid #DDE3EA}
+.fx-seta{display:inline-block;width:14px;color:#6B7C8C}
+.fx-ext .fx-c td{padding-left:14px;padding-top:8px;font-size:12px}
+.fx-ext .fx-c td.n{padding-left:6px}
+.fx-ext .fx-l td{padding-top:4px;padding-bottom:4px;border-bottom-color:#F0F3F6;font-size:11.5px}
+.fx-ext .fx-l td:nth-child(2){padding-left:24px;white-space:nowrap}
+.fx-ext .fx-l td.n:last-child{color:#0F7A38}
+.fx-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.fx-leitura{margin:16px 0 0;font-size:12.5px;line-height:1.55;color:#34465A}
+.fx-pe{margin:10px 0 0;font-size:10.5px;color:#8A97A6}
+/* recibo do parceiro */
+.fx-recibo{border:1px solid #DDE3EA;border-radius:14px;overflow:hidden}
+.fx-rec-top{background:#12304C;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.fx-rec-top .fx-marca{color:#E9B949}
+.fx-rec-nome{font-size:calc(20px * var(--escala));font-weight:800;margin-top:2px}
+.fx-rec-corpo{padding:14px 16px 16px}
+.fx-rec-lbl{font-size:11.5px;color:#6B7C8C}
+.fx-rec-valor{font-size:calc(34px * var(--escala));font-weight:800;color:#0F7A38;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fx-rec-linhas{border-top:1px dashed #C9D2DD;margin-top:12px;padding-top:8px;display:grid;gap:5px;font-size:13px}
+.fx-rec-linhas div{display:flex;justify-content:space-between;gap:10px}
+.fx-rec-linhas em{font-style:normal;color:#8A97A6;font-size:11px;margin-left:4px}
+.fx-rec-linhas b{font-variant-numeric:tabular-nums}
+.fx-status{margin-top:12px;font-size:12px;font-weight:800;padding:6px 10px;border-radius:8px;background:#FDF3DC;color:#8A5A0B}
+.fx-status.pago{background:#E3F4EA;color:#0F7A38}
+.fx-status.parcial{background:#E6EEF8;color:#1F4F86}
 </style>
 <style>
 /* ===== acréscimos da demonstração (mesma linguagem visual do app) ===== */
@@ -897,6 +959,12 @@ input[type=range]{width:100%;accent-color:var(--navy-txt)}
 @media (max-width:560px){ .detalhe-linha{grid-template-columns:1fr} }
 
 /* lista de parceiros em acordeão */
+.dobra-head{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:8px;cursor:pointer}
+.dobra-head h3{margin:0}
+.dobra-head .seta{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s;flex:none}
+.dobra.aberta > .dobra-head .seta{transform:rotate(90deg)}
+.dobra:not(.aberta) > .dobra-corpo{display:none}
+.dobra.aberta > .dobra-head{margin-bottom:12px}
 .acordeao{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
 .acordeao + .acordeao{margin-top:8px}
 .acordeao > button{
@@ -1014,7 +1082,6 @@ body.parceiro .subnav{display:none}
   <div class="lat-achados" id="achadosPC" hidden></div>
 
   <nav class="lat-nav" id="latNav">
-    <button data-ir="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.4"/><rect x="14" y="3" width="7" height="5" rx="1.4"/><rect x="3" y="16" width="7" height="5" rx="1.4"/><rect x="14" y="12" width="7" height="9" rx="1.4"/></svg>Dashboard</button>
     <button data-ir="painel"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/></svg>Fechamento</button>
     <button data-ir="oper" class="no-parceiro"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.6" cy="7.6" r="1.3"/></svg>Operações</button>
     <button data-ir="lanc" class="no-parceiro"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Lançamentos</button>
@@ -1108,22 +1175,6 @@ body.parceiro .subnav{display:none}
 
 <div class="wrap">
 
-  <!-- ================= DASHBOARD ================= -->
-  <section class="panel" id="p-dash">
-    <div class="dash-topo">
-      <div>
-        <h1>Dashboard</h1>
-        <p id="dashSub">—</p>
-      </div>
-      <div class="dash-mes">
-        <button id="dashAnt" title="Mês anterior">&lsaquo;</button>
-        <span id="dashMes">—</span>
-        <button id="dashProx" title="Próximo mês">&rsaquo;</button>
-      </div>
-    </div>
-    <div id="dashConteudo"></div>
-  </section>
-
   <!-- ================= PAINEL ================= -->
   <section class="panel on" id="p-painel">
     <div id="lockPainel"></div>
@@ -1197,8 +1248,9 @@ body.parceiro .subnav{display:none}
       <div style="margin-top:12px"><button class="btn" id="btnSalvarOp">Cadastrar operação</button></div>
     </div>
 
-    <div class="box" id="boxAcumulo">
-      <h3>Acúmulo cartão</h3>
+    <div class="box dobra" id="boxAcumulo">
+      <button type="button" class="dobra-head"><svg class="seta" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg><h3>Acúmulo cartão</h3></button>
+      <div class="dobra-corpo">
       <p class="hint">Pontos de cartão que caíram nas contas. O <b>investidor é sempre o parceiro</b>, então ele recebe o valor
         integral. Valor lançado = pontos ÷ 1.000 × valor fixo da companhia (definido em <b>Ajustes › Acúmulo cartão</b>).</p>
       <div class="grid2">
@@ -1214,10 +1266,12 @@ body.parceiro .subnav{display:none}
       <div id="acContas" style="margin-top:10px"></div>
       <div class="totbar" id="acTotais"></div>
       <div style="margin-top:12px"><button class="btn" id="btnLancarAcumulo">Lançar acúmulo</button></div>
+      </div>
     </div>
 
-    <div class="box">
-      <h3>Operações cadastradas</h3>
+    <div class="box dobra" id="boxOpsCad">
+      <button type="button" class="dobra-head"><svg class="seta" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg><h3>Operações cadastradas</h3></button>
+      <div class="dobra-corpo">
       <div class="grid2" style="margin-bottom:12px">
         <div class="field"><label for="opfDe">Data de</label><input type="date" id="opfDe"></div>
         <div class="field"><label for="opfAte">Data até</label><input type="date" id="opfAte"></div>
@@ -1229,6 +1283,7 @@ body.parceiro .subnav{display:none}
       </div>
       <div style="margin-bottom:12px"><button class="btn alt" id="opfLimpar" type="button">Limpar filtros</button></div>
       <div id="listaOps"></div>
+      </div>
     </div>
 
     <div class="box" id="boxLancar" hidden>
@@ -1532,6 +1587,29 @@ body.parceiro .subnav{display:none}
     <button class="btn danger" type="button" id="excluirClube" style="margin-right:auto">Excluir</button>
     <button class="btn alt" type="button" data-close>Cancelar</button>
     <button class="btn" type="button" id="salvarClube">Salvar</button>
+  </div>
+</dialog>
+
+<dialog id="dlgAjuste">
+  <div class="dlg-head"><span>Ajuste de valores</span><button type="button" data-close>&times;</button></div>
+  <div class="dlg-body">
+    <div class="field"><label>Parceiro</label><input type="text" id="ajParceiro" readonly></div>
+    <p class="hint" style="margin:0">Pontos do parceiro que foram utilizados. O valor é descontado do que é devido a ele,
+      só na conta escolhida — as outras contas e operações não mudam.</p>
+    <div class="grid2">
+      <div class="field"><label for="ajConta">Conta utilizada</label><select id="ajConta"></select></div>
+      <div class="field"><label for="ajCia">Companhia</label><select id="ajCia"></select></div>
+      <div class="field"><label for="ajPontos">Quantidade de pontos utilizada</label><input type="number" id="ajPontos" min="0" placeholder="50000"></div>
+      <div class="field"><label for="ajMilheiro">Valor do milheiro (R$)</label><input type="number" id="ajMilheiro" step="0.01" min="0" placeholder="16,00"></div>
+      <div class="field"><label for="ajData">Data</label><input type="date" id="ajData"></div>
+      <div class="field"><label for="ajObs">Observação</label><input type="text" id="ajObs" placeholder="opcional"></div>
+    </div>
+    <div class="totbar" id="ajPrevia" style="margin:0"></div>
+    <div id="ajLista"></div>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn alt" type="button" data-close>Cancelar</button>
+    <button class="btn" type="button" id="salvarAjuste">Lançar ajuste</button>
   </div>
 </dialog>
 
@@ -1859,6 +1937,12 @@ const mesLabel  = k => { const [y,m]=k.split('-'); return MESES[+m-1]+'/'+y; };
 const iniciais  = n => n.trim().replace(/[()]/g,'').split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 const mesAtual  = () => el('mesRef').value || new Date().toISOString().slice(0,7);
 const fechado   = m => S.fechados.includes(m);
+/* ordem alfabética para todas as listas de escolha (ignora acento e maiúscula) */
+const az = (lista, nome=x=>x) => lista.slice().sort((a,b)=>String(nome(a)).localeCompare(String(nome(b)),'pt-BR',{sensitivity:'base',numeric:true}));
+const contasAZ = lista => az(lista||S.contas, c=>c.nome);
+const respsAZ  = lista => az(lista||S.responsaveis, r=>r.nome);
+const ciasAZ   = () => az(S.cias, c=>c.nome);
+const fontesAZ = () => az(S.fontes);
 const contasDoResp = rid => new Set(S.contas.filter(c=>(c.respId||'')===rid).map(c=>c.id));
 
 function previsaoPagamento(respId, mes){
@@ -2125,6 +2209,77 @@ function ajustarEscala(){
 }
 window.addEventListener('resize', ajustarEscala);
 
+/* =========================================================
+   Fechamento — relatório limpo (fundo branco, leitura de cima para baixo)
+   · consolidado: resumo, companhias, parceiros, extrato agrupado, operações
+   · parceiro filtrado (ou logado): vira um recibo pronto para o WhatsApp
+   ========================================================= */
+const extratoFechado = new Set();   // parceiros recolhidos no extrato (só na tela)
+const dataBR = d => (d||'').split('-').reverse().join('/');
+
+function extratoAgrupado(lancs, d){
+  // parceiro → contas → lançamentos
+  const porResp = {};
+  lancs.forEach(l=>{
+    const c = contaById(l.contaId); if(!c) return;
+    const rid = c.respId || '';
+    (porResp[rid] ||= {}); (porResp[rid][c.id] ||= []).push(l);
+  });
+  const grupos = respsAZ(Object.keys(porResp).map(id=>({id, nome:respNome(id)})));
+  const soma = ls => ls.reduce((a,l)=>a+(+l.resultado||0),0);
+  const umParceiro = grupos.length === 1;
+  return `<table class="fx-tab fx-ext">
+    <colgroup><col style="width:15%"><col><col style="width:19%"><col style="width:20%"></colgroup>
+    <thead><tr><th>Data</th><th>Conta / operação</th><th class="n">Milhas</th><th class="n">${parceiroLogado?'A receber':'Resultado'}</th></tr></thead>
+    <tbody>${grupos.map(g=>{
+      const contas = contasAZ(Object.keys(porResp[g.id]).map(contaById));
+      const todos = contas.flatMap(c=>porResp[g.id][c.id]);
+      const fechadoG = !umParceiro && extratoFechado.has(g.id);
+      return (umParceiro ? '' : `<tr class="fx-g" data-grupo="${esc(g.id)}">
+          <td colspan="3"><span class="fx-seta">${fechadoG?'▸':'▾'}</span><b>${esc(g.nome)}</b>
+            <span class="fx-mut">${contas.length} conta${contas.length>1?'s':''} · ${todos.length} lanç.</span></td>
+          <td class="n"><b>${money(soma(todos))}</b></td></tr>`) +
+        (fechadoG ? '' : contas.map(c=>{
+          const ls = porResp[g.id][c.id].slice().sort((x,y)=> x.data<y.data?-1:1);
+          return `<tr class="fx-c"><td colspan="3"><b>${esc(c.nome)}</b></td><td class="n"><b>${money(soma(ls))}</b></td></tr>` +
+            ls.map(l=>`<tr class="fx-l">
+              <td class="fx-mut">${dataBR(l.data).slice(0,5)}</td>
+              <td><i class="fx-dot" style="background:${ciaColor(l.cia)}"></i>${esc(l.opRef||'—')}
+                <span class="fx-mut">· ${esc(l.cia)}${l.fonte?' · '+esc(l.fonte):''}</span></td>
+              <td class="n">${num(l.milhas)}</td>
+              <td class="n ${(+l.resultado||0)<0?'fx-neg':''}">${money(l.resultado)}</td></tr>`).join('');
+        }).join(''));
+    }).join('')}</tbody>
+    <tfoot><tr><td colspan="2">Total</td><td class="n">${num(d.milhas)}</td><td class="n">${money(d.total)}</td></tr></tfoot>
+  </table>`;
+}
+
+function reciboParceiro(rid, d, mk_){
+  const r = d.responsaveis.find(x=>x.id===rid) || {total:d.total, pago:0, saldo:d.total, situacao:'pendente', contas:[]};
+  const resp = respById(rid) || {};
+  const sit = r.situacao;
+  const contas = contasAZ(d.contas.map(a=>a.conta)).map(c=>d.contas.find(a=>a.conta.id===c.id));
+  return `<div class="fx-recibo">
+    <div class="fx-rec-top">
+      <div><div class="fx-marca">MILHAS PLUS · ${esc(mesLabel(mk_).toUpperCase())}</div>
+        <div class="fx-rec-nome">${esc(respNome(rid))}</div></div>
+      <img src="logo.png" alt="" class="fx-logo">
+    </div>
+    <div class="fx-rec-corpo">
+      <div class="fx-rec-lbl">${sit==='pago'?'Você recebeu':'Você recebe'}</div>
+      <div class="fx-rec-valor ${r.total<0?'fx-neg':''}">${money(r.total)}</div>
+      <div class="fx-mut">Previsão: ${previsaoPagamento(rid, mk_)}${resp.pix?' · PIX '+esc(resp.pix):''}</div>
+      <div class="fx-rec-linhas">
+        ${contas.map(a=>`<div><span>${esc(a.conta.nome)} <em>${num(a.milhas)} milhas</em></span><b class="${a.total<0?'fx-neg':''}">${money(a.total)}</b></div>`).join('')}
+      </div>
+      ${r.pago>CENTAVO?`<div class="fx-rec-linhas" style="border-top-style:solid">
+        <div><span>Já pago</span><b>${money(r.pago)}</b></div>
+        <div><span>Falta receber</span><b>${money(r.saldo)}</b></div></div>`:''}
+      <div class="fx-status ${sit}">● ${ROTULO_PGTO[sit]}${sit==='parcial'?' · falta '+money(r.saldo):''}</div>
+    </div>
+  </div>`;
+}
+
 function renderReport(){
   const mk_ = mesAtual(), d = agrupar(mk_), R = el('report');
   if(d.vazio){
@@ -2132,135 +2287,84 @@ function renderReport(){
       Cadastre uma operação e lance nas contas.</div>`;
     ajustarEscala(); return;
   }
-  let sn=0; const N=()=>++sn;
-  const fa = filtrosAtivos();
-  const mostrarResp = !parceiroLogado && (d.responsaveis.length>1 || (d.responsaveis[0] && d.responsaveis[0].id));
-  const nomes = d.contas.map(a=>esc(a.conta.nome));
-  const lista = nomes.length===0 ? '—'
-    : nomes.length<=4 ? (nomes.length>1 ? nomes.slice(0,-1).join(', ')+' e '+nomes.slice(-1) : nomes[0])
-    : nomes.slice(0,4).join(', ')+' e mais '+(nomes.length-4);
-  const icoUser = '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>';
+  const lancs = dadosDoMes(mk_);
+  const rid = parceiroLogado || (S.filtro.resp!=='todos' ? S.filtro.resp : null);
+  const recibo = rid !== null && rid !== '' && respById(rid);
+  // no recibo o nome do parceiro já está no topo
+  const fa = filtrosAtivos().filter(x=>!(recibo && x.startsWith('Parceiro:')));
+  const mostrarResp = !rid && (d.responsaveis.length>1 || (d.responsaveis[0] && d.responsaveis[0].id));
+  const nOps = d.operacoes.length;
+  const porMil = d.milhas ? d.total/(d.milhas/1000) : 0;
+  const maxCia = Math.max(...d.cias.map(c=>Math.abs(c.valor)), 1);
 
   R.innerHTML = `
-  <div class="rcard">
-    <div class="r-head">
-      <img src="logo.png" alt="Milhas Plus" class="logo">
-      <div class="logo-txt"><b>MILHAS</b><i>PLUS</i></div>
-      <div class="r-title">
-        <h2>${esc(S.cfg.titulo||'Fechamento Mensal')}${nomeDestaque()?' – '+esc(nomeDestaque()):''}</h2>
-        <p>${icoUser} Contas analisadas: <b>${lista}</b></p>
+  <div class="fx">
+    ${recibo ? reciboParceiro(rid, d, mk_) : `
+    <div class="fx-topo">
+      <div class="fx-id">
+        <img src="logo.png" alt="" class="fx-logo">
+        <div><div class="fx-marca">MILHAS PLUS</div>
+          <div class="fx-titulo">${esc(S.cfg.titulo||'Fechamento Mensal')} · ${esc(mesLabel(mk_))}</div></div>
       </div>
-      <div class="datepill"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>${esc(mesLabel(mk_))}</div>
-    </div>
-    ${fa.length?`<div class="r-filters">Filtros aplicados: ${fa.map(x=>'<b>'+esc(x)+'</b>').join('')}</div>`:''}
-  </div>
+      <div class="fx-hero"><span>Resultado do mês</span><b class="${d.total<0?'fx-neg':''}">${money(d.total)}</b></div>
+    </div>`}
 
-  <div class="cols">
-    <div class="rcard">
-      <div class="sec"><i>${N()}</i><h3>Resultado do mês</h3></div>
-      <div class="res-body">
-        <div class="res-value">${money(d.total)}</div>
-        <div class="res-note">
-          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="${d.total>=0?'#16A34A':'#C0392B'}"/>
-          <path d="${d.total>=0?'m7.5 12.5 3 3 6-6':'M8 8l8 8M16 8l-8 8'}" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          resultado operacional ${d.total>=0?'positivo':'negativo'}
-        </div>
-      </div>
+    <div class="fx-stats">
+      <span><b>${num(d.milhas)}</b> milhas</span>
+      <span><b>${d.contas.length}</b> conta${d.contas.length===1?'':'s'}</span>
+      <span><b>${nOps}</b> ${nOps===1?'operação':'operações'}</span>
+      <span><b>${money(porMil).replace('R$ ','R$ ')}</b> por milheiro</span>
     </div>
-    <div class="rcard">
-      <div class="sec"><i>${N()}</i><h3>Resultado por companhia aérea</h3></div>
-      ${d.cias.map(c=>`<div class="cia-row">
-        <div class="cia-name" style="color:${ciaColor(c.nome)}">${esc(c.nome)}</div>
-        <div class="cia-mid"><span>Resultado operacional:</span><b>${money(c.valor)}</b></div>
-        ${donut(c.pct, ciaColor(c.nome))}</div>`).join('')}
-      <div class="cia-foot">% baseado no resultado operacional total</div>
-    </div>
-  </div>
+    ${fa.length?`<div class="fx-filtros">Filtros: ${fa.map(x=>esc(x)).join(' · ')}</div>`:''}
 
-  <div class="rcard">
-    <div class="sec"><i>${N()}</i><h3>Mini extrato por conta</h3></div>
-    <div class="acc-grid" style="grid-template-columns:repeat(${Math.min(3,Math.max(1,d.contas.length))},minmax(0,1fr))">
-      ${d.contas.slice(0,6).map(a=>{
-        const cor = a.conta.cor||'#12304C';
-        return `<div class="acc">
-          <div class="acc-head" style="background:${cor}">
-            <div class="av">${icoUser}</div>
-            <div><b>${esc(a.conta.nome)}</b><span>${subtituloConta(a)}</span></div>
-          </div>
-          <table>
-            <colgroup><col style="width:26%"><col style="width:24%"><col style="width:15%"><col style="width:35%"></colgroup>
-            <thead><tr style="background:${cor}dd"><th>CIA</th><th>Fonte</th><th class="num" style="text-align:center">Qtd.</th><th class="num">Resultado</th></tr></thead>
-            <tbody>
-              ${a.linhas.map(l=>`<tr><td class="txt" style="color:${ciaColor(l.cia)}">${esc(l.cia)}</td><td class="txt">${esc(l.fonte)}</td>
-                <td class="num">${l.qtd}</td><td class="num">${money(l.valor)}</td></tr>`).join('')}
-              ${a.outros?`<tr><td><span class="dots"><i></i><i></i><i></i></span></td><td class="txt">Outros</td>
-                <td class="num">${a.outros.qtd}</td><td class="num">${money(a.outros.valor)}</td></tr>`:''}
-            </tbody>
-            <tfoot><tr style="background:${cor}14">
-              <td colspan="2" style="color:${cor}">TOTAL ${esc(a.conta.nome.toUpperCase())}</td>
-              <td class="num">${a.qtd}</td><td class="num">${money(a.total)}</td></tr></tfoot>
-          </table>
-          <div class="grow"></div>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>
+    ${d.cias.length?`<div class="fx-sec">
+      <h4>Por companhia</h4>
+      ${d.cias.map(c=>`<div class="fx-cia">
+        <span class="fx-cia-n" style="color:${ciaColor(c.nome)}">${esc(c.nome)}</span>
+        <span class="fx-bar"><i style="width:${Math.max(2,Math.abs(c.valor)/maxCia*100).toFixed(1)}%;background:${ciaColor(c.nome)}"></i></span>
+        <span class="fx-pct">${c.pct.toFixed(1).replace('.',',')}%</span>
+        <b class="${c.valor<0?'fx-neg':''}">${money(c.valor)}</b></div>`).join('')}
+    </div>`:''}
 
-  ${d.operacoes.length?`<div class="rcard opsec">
-    <div class="sec"><i>${N()}</i><h3>Operações do mês</h3></div>
-    <table>
-      <colgroup><col style="width:${parceiroLogado?'46%':'38%'}"><col style="width:15%"><col style="width:19%">${parceiroLogado?'':'<col style="width:16%">'}<col style="width:20%"></colgroup>
-      <thead><tr><th>Promoção</th><th>CIA</th><th class="n">Milhas</th>${parceiroLogado?'':'<th class="n">Custo</th>'}<th class="n">${parceiroLogado?'A receber':'Resultado'}</th></tr></thead>
-      <tbody>${d.operacoes.map(o=>`<tr>
-        <td><span class="op-ref">${esc(o.op.ref)}</span><span class="op-sub">${esc(o.op.fonte)} · ${o.qtd} conta${o.qtd>1?'s':''}</span></td>
-        <td style="color:${ciaColor(o.op.cia)};font-weight:800">${esc(o.op.cia)}</td>
-        <td class="n">${num(o.milhas)}</td>
-        ${parceiroLogado?'':`<td class="n" style="color:#B4232A">${o.custo?money(o.custo):'—'}</td>`}
-        <td class="n" style="color:var(--green-dark);font-weight:800">${money(o.resultado)}</td></tr>`).join('')}
-      </tbody>
-      <tfoot><tr><td>Total do período</td><td></td>
-        <td class="n">${num(d.milhas)}</td>
-        ${parceiroLogado?'':`<td class="n" style="color:#B4232A">${money(d.custo)}</td>`}
-        <td class="n" style="color:var(--green-dark)">${money(d.total)}</td></tr></tfoot>
-    </table>
-  </div>`:''}
+    ${mostrarResp?`<div class="fx-sec">
+      <h4>Por parceiro</h4>
+      <table class="fx-tab"><tbody>${d.responsaveis.map(r=>`<tr>
+        <td><b>${esc(r.nome)}</b> <span class="fx-mut">${r.contas.length} conta${r.contas.length>1?'s':''}</span></td>
+        <td>${r.id?`<span class="fx-chip ${r.situacao}">${ROTULO_PGTO[r.situacao]}${r.situacao==='parcial'?' · falta '+money(r.saldo):''}</span>`:''}</td>
+        <td class="n fx-mut">${r.pct.toFixed(1).replace('.',',')}%</td>
+        <td class="n"><b>${money(r.total)}</b></td></tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="3">Soma dos parceiros</td><td class="n">${money(d.total)}</td></tr></tfoot></table>
+    </div>`:''}
 
-  ${mostrarResp?`<div class="rcard">
-    <div class="sec"><i>${N()}</i><h3>Consolidado por parceiro</h3></div>
-    ${d.responsaveis.map(r=>{
-      const cor = r.id ? (r.cor||'#12304C') : '#6B7C8C';
-      return `<div class="resp-row">
-        <div class="resp-av" style="background:${cor}">${esc(iniciais(r.nome))}</div>
-        <div class="resp-mid">
-          <b style="display:flex;align-items:center;gap:7px">${esc(r.nome)}${r.id?`<span class="badge ${CLASSE_PGTO[r.situacao]}">${ROTULO_PGTO[r.situacao]}${r.situacao==='parcial'?' · falta '+money(r.saldo):''}</span>`:''}</b>
-          <span>${esc(r.contas.join(', '))} · ${num(r.milhas)} milhas · ${r.qtd} lançamento${r.qtd>1?'s':''}</span>
-          <div class="resp-bar"><i style="width:${Math.max(2,r.pct).toFixed(1)}%;background:${cor}"></i></div>
-        </div>
-        <div class="resp-val"><b>${money(r.total)}</b><em>${r.pct.toFixed(1).replace('.',',')}% do total</em></div>
-      </div>`;
-    }).join('')}
-    <div class="resp-foot"><span>Soma dos parceiros</span><b>${money(d.total)}</b></div>
-  </div>`:''}
+    <div class="fx-sec fx-quebra">
+      <h4>Extrato por ${recibo?'conta':'parceiro e conta'}</h4>
+      ${extratoAgrupado(lancs, d)}
+    </div>
 
-  <div class="rcard">
-    <div class="sec"><i>${N()}</i><h3>Fechamento consolidado</h3></div>
-    <div class="cons">
-      <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a2 2 0 0 1 2 2v1"/><path d="M3 7.5V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M21 10h-4a2 2 0 0 0 0 4h4z"/></svg></div>
-      <div class="tx"><span>Resultado consolidado do período</span><b>${money(d.total)}</b></div>
-    </div>
-  </div>
+    ${!parceiroLogado && !recibo && nOps?`<div class="fx-sec fx-quebra">
+      <h4>Operações do mês</h4>
+      <table class="fx-tab">
+        <colgroup><col><col style="width:13%"><col style="width:17%"><col style="width:17%"><col style="width:17%"></colgroup>
+        <thead><tr><th>Operação</th><th>CIA</th><th class="n">Milhas</th><th class="n">Custo</th><th class="n">Resultado</th></tr></thead>
+        <tbody>${d.operacoes.map(o=>`<tr>
+          <td><b>${esc(o.op.ref)}</b> <span class="fx-mut">${o.qtd} conta${o.qtd>1?'s':''}</span></td>
+          <td style="color:${ciaColor(o.op.cia)};font-weight:800">${esc(o.op.cia)}</td>
+          <td class="n">${num(o.milhas)}</td>
+          <td class="n fx-custo">${o.custo?money(o.custo):'—'}</td>
+          <td class="n ${o.resultado<0?'fx-neg':''}"><b>${money(o.resultado)}</b></td></tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="2">Total</td><td class="n">${num(d.milhas)}</td><td class="n fx-custo">${money(d.custo)}</td><td class="n">${money(d.total)}</td></tr></tfoot>
+      </table>
+    </div>`:''}
 
-  <div class="rcard">
-    <div class="sec"><i>${N()}</i><h3>Leitura executiva</h3></div>
-    <div class="read">
-      <div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/></svg></div>
-      <p>${leituraExecutiva(d)}</p>
-    </div>
-    <div class="read-foot">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#16A34A"/><path d="m7.5 12.5 3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Pedimos a gentileza de conferir as informações com a planilha de controle.
-    </div>
+    ${recibo?'':`<p class="fx-leitura">${leituraExecutiva(d)}</p>`}
+    <p class="fx-pe">Pedimos a gentileza de conferir as informações com a planilha de controle.</p>
   </div>`;
+
+  R.querySelectorAll('[data-grupo]').forEach(tr=>tr.onclick=()=>{
+    const g = tr.dataset.grupo;
+    extratoFechado.has(g) ? extratoFechado.delete(g) : extratoFechado.add(g);
+    renderReport();
+  });
   requestAnimationFrame(ajustarEscala);
 }
 
@@ -2544,6 +2648,9 @@ function recalcularOperacao(o){
   o.status='lancada';
 }
 
+/* cards recolhíveis (Acúmulo cartão, Operações cadastradas): fechados ao abrir o app */
+document.querySelectorAll('.dobra > .dobra-head').forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('aberta'));
+
 /* --- lançar em lote --- */
 let opAtual = null;
 function abrirLancar(id){
@@ -2564,7 +2671,7 @@ function abrirLancar(id){
 
   el('contasPart').innerHTML = `<div style="overflow-x:auto"><table class="list">
     <thead><tr><th></th><th>Conta</th><th>Parceiro</th><th>Investidor</th><th style="text-align:right">Milhas da promo</th><th style="text-align:right">A receber</th></tr></thead>
-    <tbody>${S.contas.map(c=>{
+    <tbody>${contasAZ().map(c=>{
       const j = jaLancado.find(l=>l.contaId===c.id);
       return `<tr>
         <td style="width:30px"><input type="checkbox" data-part="${c.id}" ${j?'checked':''} style="width:17px;height:17px;accent-color:var(--navy)"></td>
@@ -2774,13 +2881,15 @@ function renderFinanceiro(){
       <td style="text-align:right" class="money">${money(r.saldo)}</td>
       <td style="white-space:nowrap">${previsaoPagamento(r.id, mk_)}</td>
       <td><span class="badge ${CLASSE_PGTO[r.situacao]}">${ROTULO_PGTO[r.situacao]}</span></td>
-      <td style="text-align:right"><button class="btn acao-min" data-baixa="${r.id}">Dar baixa</button></td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn alt acao-min" data-ajuste="${r.id}">Ajuste de valores</button>
+        <button class="btn acao-min" data-baixa="${r.id}">Dar baixa</button></td>
     </tr>`;}).join('')}</tbody>
     <tfoot><tr><td colspan="4" style="font-weight:800">Total a pagar</td>
       <td style="text-align:right" class="money">${money(somaSaldo)}</td><td colspan="3"></td></tr></tfoot>
     </table></div>`
     : `<div class="empty">Nada pendente em ${esc(mesLabel(mk_))}.</div>`;
 
+  el('listaApagar').querySelectorAll('[data-ajuste]').forEach(b=>b.onclick=()=>abrirAjuste(b.dataset.ajuste));
   el('listaApagar').querySelectorAll('[data-baixa]').forEach(b=>b.onclick=()=>{
     baixaResp = b.dataset.baixa;
     const r = d.responsaveis.find(x=>x.id===baixaResp);
@@ -2836,6 +2945,102 @@ el('salvarBaixa').onclick = ()=>{
   S.pagamentos.push({id:uid(),respId:baixaResp,mes:mesAtual(),valor:v,data:el('bxData').value,
                      por:el('bxPor').value.trim(),comprovante:el('bxComp').value.trim()});
   save(); el('dlgBaixa').close(); refreshAll();
+};
+
+/* =========================================================
+   Ajuste de valores — pontos do parceiro que foram utilizados
+   Vira um lançamento negativo na conta escolhida: desconta do que é
+   devido ao parceiro no mês e aparece no fechamento e no portal.
+   desconto = pontos ÷ 1000 × valor do milheiro
+   ========================================================= */
+const TIPO_AJUSTE  = 'Ajuste de valores';
+const FONTE_AJUSTE = 'AJUSTE';
+const ehAjuste = l => l.opTipo === TIPO_AJUSTE && !l.operacaoId;
+let ajusteResp = null;
+
+function dataNoMes(mk_){
+  const hoje = new Date().toISOString().slice(0,10);
+  if(mesKey(hoje) === mk_) return hoje;
+  const [y,m] = mk_.split('-').map(Number);
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0,10);   // último dia do mês
+}
+
+function abrirAjuste(rid){
+  const mk_ = mesAtual();
+  if(fechado(mk_)){ alert('Mês fechado. Reabra em Ajustes para lançar ajustes.'); return; }
+  ajusteResp = rid;
+  const contas = contasAZ(S.contas.filter(c=>c.respId===rid));
+  el('ajParceiro').value = respNome(rid);
+  el('ajConta').innerHTML = contas.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+  el('ajCia').innerHTML = ciasAZ().map(c=>`<option>${esc(c.nome)}</option>`).join('');
+  el('ajPontos').value = ''; el('ajObs').value = '';
+  el('ajData').value = dataNoMes(mk_);
+  sugerirAjuste();
+  previaAjuste();
+  el('dlgAjuste').showModal();
+  el('ajPontos').focus();
+}
+
+/* sugere companhia e milheiro pelo último lançamento da conta no mês */
+function sugerirAjuste(){
+  const mk_ = mesAtual();
+  const ult = S.lancamentos.filter(l=>l.contaId===el('ajConta').value && mesKey(l.data)===mk_ && !ehAjuste(l))
+                .sort((a,b)=> a.data<b.data?1:-1)[0];
+  if(ult && [...el('ajCia').options].some(o=>o.value===ult.cia)) el('ajCia').value = ult.cia;
+  el('ajMilheiro').value = ult && ult.cpmVenda ? ult.cpmVenda : (el('ajMilheiro').value || '');
+}
+
+function valorAjuste(){
+  const pontos = Math.max(0, parseFloat(el('ajPontos').value)||0);
+  const milheiro = Math.max(0, parseFloat(el('ajMilheiro').value)||0);
+  return {pontos, milheiro, desconto: centavos(pontos/1000*milheiro)};
+}
+
+function previaAjuste(){
+  const mk_ = mesAtual(), d = agrupar(mk_);
+  const r = d.responsaveis.find(x=>x.id===ajusteResp) || {total:0, pago:0};
+  const {desconto} = valorAjuste();
+  const novo = centavos(r.total - desconto);
+  el('ajPrevia').innerHTML = `
+    <div><span>Devido hoje</span><b>${money(r.total)}</b></div>
+    <div><span>Desconto</span><b class="r">− ${money(desconto)}</b></div>
+    <div><span>Devido após o ajuste</span><b class="${novo>=0?'g':'r'}">${money(novo)}</b></div>
+    <div class="push"></div>`;
+
+  const set = contasDoResp(ajusteResp);
+  const feitos = S.lancamentos.filter(l=>ehAjuste(l) && set.has(l.contaId) && mesKey(l.data)===mk_);
+  el('ajLista').innerHTML = feitos.length ? `<div class="detalhes">${feitos.map(l=>`
+    <div class="detalhe-linha" style="grid-template-columns:1fr auto auto">
+      <span style="font-size:12.5px"><b>${esc((contaById(l.contaId)||{}).nome||'—')}</b> · ${esc(l.cia)} ·
+        ${num(-l.milhas)} pts × ${money(l.cpmVenda)}/mil${l.obs?' · '+esc(l.obs):''}</span>
+      <b class="r">${money(l.resultado)}</b>
+      <button class="rowbtn" data-delaj="${l.id}" title="Excluir ajuste"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+    </div>`).join('')}</div>` : '';
+  el('ajLista').querySelectorAll('[data-delaj]').forEach(b=>b.onclick=()=>{
+    if(!confirm('Excluir este ajuste?')) return;
+    S.lancamentos = S.lancamentos.filter(x=>x.id!==b.dataset.delaj);
+    save(); refreshAll(); previaAjuste();
+  });
+}
+el('ajConta').onchange = ()=>{ sugerirAjuste(); previaAjuste(); };
+['ajPontos','ajMilheiro'].forEach(id=>el(id).oninput = previaAjuste);
+
+el('salvarAjuste').onclick = ()=>{
+  const {pontos, milheiro, desconto} = valorAjuste();
+  const contaId = el('ajConta').value, cia = el('ajCia').value, data = el('ajData').value;
+  if(!contaId){ alert('Este parceiro não tem conta cadastrada.'); return; }
+  if(!data){ alert('Informe a data.'); return; }
+  if(mesKey(data) !== mesAtual() && !confirm(`A data está fora de ${mesLabel(mesAtual())}. O ajuste vai para ${mesLabel(mesKey(data))}. Continuar?`)) return;
+  if(fechado(mesKey(data))){ alert('O mês desta data está fechado.'); return; }
+  if(pontos<=0 || milheiro<=0){ alert('Informe a quantidade de pontos e o valor do milheiro.'); return; }
+  garantirCadastros(cia, FONTE_AJUSTE);
+  S.lancamentos.push({
+    id:uid(), operacaoId:'', opRef:'Pontos utilizados', opTipo:TIPO_AJUSTE,
+    contaId, data, cia, fonte:FONTE_AJUSTE, investidor:'PARCEIRO',
+    milhas:-pontos, pontosUsados:0, custoManual:null, cpmVenda:milheiro, cpmCusto:0,
+    valor:-desconto, custo:0, resultado:-desconto, obs:el('ajObs').value.trim()
+  });
+  save(); el('dlgAjuste').close(); refreshAll();
 };
 
 /* atalhos de valor no diálogo da baixa */
@@ -2974,10 +3179,10 @@ const acPontos = {};          // contaId → pontos digitados (sobrevive a re-re
 function renderAcumulo(){
   const sel = el('acCia'); if(!sel) return;
   const atual = sel.value;
-  sel.innerHTML = S.cias.map(c=>`<option ${c.nome===atual?'selected':''}>${esc(c.nome)}</option>`).join('');
+  sel.innerHTML = ciasAZ().map(c=>`<option ${c.nome===atual?'selected':''}>${esc(c.nome)}</option>`).join('');
 
   // parceiros que têm ao menos uma conta
-  const comConta = S.responsaveis.filter(r=>S.contas.some(c=>c.respId===r.id));
+  const comConta = respsAZ(S.responsaveis.filter(r=>S.contas.some(c=>c.respId===r.id)));
   [...acParceirosSel].forEach(id=>{ if(!comConta.some(r=>r.id===id)) acParceirosSel.delete(id); });
   el('acParceiros').innerHTML = comConta.length ? comConta.map(r=>
     `<label><input type="checkbox" value="${r.id}" ${acParceirosSel.has(r.id)?'checked':''}>${esc(r.nome)}</label>`).join('')
@@ -2996,7 +3201,7 @@ function renderContasAcumulo(){
     ? `<span>${esc(cia)}</span><span class="gold">${money(taxa)} por milheiro</span>`
     : `<span class="gold">Sem valor fixo para ${esc(cia)}</span><span>defina em Ajustes › Acúmulo cartão</span>`) : '';
 
-  const contas = S.contas.filter(c=>acParceirosSel.has(c.respId));
+  const contas = az(S.contas.filter(c=>acParceirosSel.has(c.respId)), c=>respNome(c.respId)+' '+c.nome);
   box.innerHTML = contas.length ? `<div style="overflow-x:auto"><table class="list">
     <thead><tr><th>Conta</th><th>Parceiro</th><th style="text-align:right">Pontos que caíram</th><th style="text-align:right">Valor</th></tr></thead>
     <tbody>${contas.map(c=>`<tr>
@@ -3067,7 +3272,7 @@ function renderTaxasAcumulo(){
   if(box.contains(document.activeElement)) return;
   box.innerHTML = `<div style="overflow-x:auto"><table class="list" style="max-width:520px">
     <thead><tr><th>Companhia</th><th style="text-align:right">R$ por milheiro</th></tr></thead>
-    <tbody>${S.cias.map(c=>`<tr>
+    <tbody>${ciasAZ().map(c=>`<tr>
       <td style="color:${esc(c.cor||'#12304C')};font-weight:700">${esc(c.nome)}</td>
       <td style="text-align:right"><input type="number" step="0.01" min="0" data-taxa="${esc(c.nome)}"
         value="${(S.cfg.acumuloCartao||{})[c.nome] ?? ''}" placeholder="0,00" style="width:120px;text-align:right"></td>
@@ -3090,34 +3295,38 @@ function abrirEditarLanc(id){
   const l = S.lancamentos.find(x=>x.id===id); if(!l) return;
   if(fechado(mesKey(l.data))){ alert('O mês deste lançamento está fechado. Reabra em Ajustes.'); return; }
   lancEditando = id;
-  const clube = ehClube(l), acum = ehAcumulo(l), avulso = clube || acum;
+  const clube = ehClube(l), acum = ehAcumulo(l), ajuste = ehAjuste(l), avulso = clube || acum || ajuste;
   const o = opById(l.operacaoId);
 
-  el('edLancTitulo').textContent = clube ? 'Editar clube' : acum ? 'Editar acúmulo cartão' : 'Editar lançamento';
-  el('edLancParams').innerHTML = clube ? '' : acum
-    ? [TIPO_ACUMULO, 'Investidor: PARCEIRO'].map(t=>`<span>${esc(t)}</span>`).join('')
+  el('edLancTitulo').textContent = clube ? 'Editar clube' : acum ? 'Editar acúmulo cartão' : ajuste ? 'Editar ajuste de valores' : 'Editar lançamento';
+  el('edLancParams').innerHTML = clube ? '' : (acum || ajuste)
+    ? [acum ? TIPO_ACUMULO : 'Pontos utilizados pelo parceiro', 'Investidor: PARCEIRO'].map(t=>`<span>${esc(t)}</span>`).join('')
     : [o ? o.ref : (l.opRef||'—'), l.cia, l.fonte,
        'Venda: ' + money(l.cpmVenda) + '/mil'].map(t=>`<span>${esc(t)}</span>`).join('');
 
-  el('edClConta').innerHTML = S.contas.map(c=>`<option value="${c.id}" ${c.id===l.contaId?'selected':''}>${esc(c.nome)}</option>`).join('');
-  el('edClCia').innerHTML   = S.cias.map(c=>`<option ${c.nome===l.cia?'selected':''}>${esc(c.nome)}</option>`).join('');
+  el('edClConta').innerHTML = contasAZ().map(c=>`<option value="${c.id}" ${c.id===l.contaId?'selected':''}>${esc(c.nome)}</option>`).join('');
+  el('edClCia').innerHTML   = ciasAZ().map(c=>`<option ${c.nome===l.cia?'selected':''}>${esc(c.nome)}</option>`).join('');
   el('edClInvestidor').innerHTML = opcoesInvestidor(l.investidor);
   el('edClData').value   = l.data;
-  el('edClValor').value  = l.valor || 0;
+  el('edClValor').value  = ajuste ? (l.cpmVenda || 0) : (l.valor || 0);
   // o campo mostra as milhas brutas; os pontos usados ficam no campo próprio
-  el('edClPontos').value = clube ? (l.milhas || 0) : milhasBrutas(l);
+  el('edClPontos').value = clube ? (l.milhas || 0) : ajuste ? -(+l.milhas||0) : milhasBrutas(l);
   el('edUsados').value   = +l.pontosUsados || '';
   edCustoOrig = +l.custo || 0; edCustoAuto = false;
   el('edCusto').value    = edCustoOrig;
 
   // no clube o programa e o valor são digitados; na operação eles vêm dela
   el('wrapEdClCia').hidden   = !avulso;
-  el('wrapEdClValor').hidden = !clube;
+  el('wrapEdClValor').hidden = !(clube || ajuste);
+  el('wrapEdClValor').querySelector('label').textContent = ajuste ? 'Valor do milheiro (R$)' : 'Valor do clube (R$)';
   el('wrapEdCusto').hidden   = avulso;
-  el('wrapEdUsados').hidden  = clube;
-  el('edClInvestidor').disabled = acum;
-  el('rotuloPontos').textContent = clube ? 'Pontos recebidos' : acum ? 'Pontos que caíram' : 'Milhas da promoção';
-  el('edLancAviso').textContent = clube ? '' : acum
+  // pontos usados pelo parceiro agora são lançados pelo Financeiro › Ajuste de valores
+  el('wrapEdUsados').hidden  = true;
+  el('edClInvestidor').disabled = acum || ajuste;
+  el('rotuloPontos').textContent = clube ? 'Pontos recebidos' : acum ? 'Pontos que caíram' : ajuste ? 'Pontos utilizados' : 'Milhas da promoção';
+  el('edLancAviso').textContent = clube ? '' : ajuste
+    ? 'Desconto = pontos ÷ 1.000 × valor do milheiro. É abatido do valor devido ao parceiro.'
+    : acum
     ? 'Valor = pontos líquidos ÷ 1.000 × valor fixo da companhia. O investidor do acúmulo é sempre o parceiro.'
     : 'Milhas e custo desta conta podem ser ajustados sem mexer nas outras contas nem no custo total da operação.';
 
@@ -3147,6 +3356,7 @@ function previaEdLanc(){
   const inv = el('edClInvestidor').value;
   let valor, custo;
   if(ehClube(l)){ valor = centavos(parseFloat(el('edClValor').value)||0); custo = 0; }
+  else if(ehAjuste(l)){ valor = -centavos((parseFloat(el('edClPontos').value)||0)/1000*(parseFloat(el('edClValor').value)||0)); custo = 0; }
   else if(ehAcumulo(l)){
     const x = linhaEditada(l);
     const taxa = taxaAcumulo(el('edClCia').value) || +l.cpmVenda || 0;
@@ -3161,7 +3371,7 @@ function previaEdLanc(){
     } else ({valor, custo} = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [linha]).itens[0]);
     if(edCustoAuto) el('edCusto').value = custo;
   }
-  const res = (ehClube(l) || ehAcumulo(l)) ? valor : calcResultado(valor, custo, inv);
+  const res = (ehClube(l) || ehAcumulo(l) || ehAjuste(l)) ? valor : calcResultado(valor, custo, inv);
   el('edLancPrevia').innerHTML = `
     <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
     <div><span>Custo${inv==='PARCEIRO'&&custo?' · bancado pelo parceiro':''}</span><b class="r" style="${inv==='PARCEIRO'?'text-decoration:line-through;opacity:.6':''}">${custo?money(custo):'—'}</b></div>
@@ -3174,7 +3384,7 @@ el('edCustoAuto').onclick = ()=>{ edCustoAuto = true; previaEdLanc(); };
 
 el('salvarClube').onclick = ()=>{
   const l = S.lancamentos.find(x=>x.id===lancEditando); if(!l) return;
-  const clube = ehClube(l), acum = ehAcumulo(l);
+  const clube = ehClube(l), acum = ehAcumulo(l), ajuste = ehAjuste(l);
   const data = el('edClData').value;
   if(!data){ alert('Informe a data.'); return; }
   if(fechado(mesKey(data))){ alert('O mês desta data está fechado.'); return; }
@@ -3183,7 +3393,14 @@ el('salvarClube').onclick = ()=>{
   const usados = Math.max(0, parseFloat(el('edUsados').value)||0);
   if(!clube && usados > brutas){ alert('Os pontos utilizados não podem passar dos pontos da conta.'); return; }
 
-  if(clube){
+  if(ajuste){
+    const milheiro = parseFloat(el('edClValor').value) || 0;
+    if(brutas <= 0 || milheiro <= 0){ alert('Informe os pontos utilizados e o valor do milheiro.'); return; }
+    const cia = el('edClCia').value, desconto = centavos(brutas/1000*milheiro);
+    garantirCadastros(cia, FONTE_AJUSTE);
+    Object.assign(l, {contaId:el('edClConta').value, data, cia, investidor:'PARCEIRO',
+                      milhas:-brutas, cpmVenda:milheiro, valor:-desconto, custo:0, resultado:-desconto});
+  }else if(clube){
     const valor = parseFloat(el('edClValor').value) || 0;
     if(brutas <= 0 && valor <= 0){ alert('Informe o valor ou os pontos.'); return; }
     const cia = el('edClCia').value;
@@ -3418,7 +3635,7 @@ const abertos = new Set();   // parceiros expandidos na lista
 
 function renderCadastros(){
   const optResp = sel => '<option value="">Sem parceiro</option>' +
-    S.responsaveis.map(r=>`<option value="${r.id}" ${r.id===sel?'selected':''}>${esc(r.nome)}</option>`).join('');
+    respsAZ().map(r=>`<option value="${r.id}" ${r.id===sel?'selected':''}>${esc(r.nome)}</option>`).join('');
 
   // lista em ordem alfabética; cada parceiro abre e fecha ao clicar
   const ordenados = S.responsaveis.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -3795,7 +4012,7 @@ el('btnPng').onclick = async ()=>{
     const rep=el('report'), box=document.querySelector('.report-scroll');
     const tf=rep.style.transform, hb=box.style.height;
     rep.style.transform='none'; box.style.height='auto';
-    const cv = await html2canvas(rep,{scale:2,backgroundColor:'#EDEFF2',useCORS:true,windowWidth:900});
+    const cv = await html2canvas(rep,{scale:2,backgroundColor:'#FFFFFF',useCORS:true,windowWidth:900});
     rep.style.transform=tf; box.style.height=hb;
     const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='fechamento-'+mesAtual()+'.png'; a.click();
   }catch(err){ alert('Não deu para gerar a imagem agora. Use "Salvar em PDF".'); }
@@ -3831,7 +4048,6 @@ function aplicarModo(m){
   localStorage.setItem(MODO, m);
   document.documentElement.setAttribute('data-modo', m);
   // o Dashboard só existe no modo pc; saindo dele, volta para o painel
-  if(m === 'mobile' && document.getElementById('p-dash').classList.contains('on')) irPara('painel');
   marcarNav();
   requestAnimationFrame(ajustarEscala);
 }
@@ -3847,7 +4063,6 @@ function irPara(destino){
   }
   marcarNav();
   window.scrollTo({top:0});
-  if(aba === 'dash') renderDash();
   if(aba === 'painel') requestAnimationFrame(ajustarEscala);
 }
 
@@ -3884,8 +4099,8 @@ function procurar(termo){
   if(t.length < 1) return {contas:[], parceiros:[]};
   const cabe = s => (s||'').toLowerCase().includes(t);
   return {
-    parceiros: S.responsaveis.filter(r=>cabe(r.nome) || cabe(r.email) || cabe(r.tel)).slice(0,6),
-    contas:    S.contas.filter(c=>cabe(c.nome) || cabe(c.cpf)).slice(0,8)
+    parceiros: respsAZ(S.responsaveis.filter(r=>cabe(r.nome) || cabe(r.email) || cabe(r.tel))).slice(0,6),
+    contas:    contasAZ(S.contas.filter(c=>cabe(c.nome) || cabe(c.cpf))).slice(0,8)
   };
 }
 
@@ -3965,6 +4180,7 @@ function selo(v, bomSubir){
 }
 
 function renderDash(){
+  if(!el('dashConteudo')) return;   // página removida
   const box = el('dashConteudo'); if(!box) return;
   const mk_ = mesAtual();
   const d = agrupar(mk_);
@@ -4068,8 +4284,8 @@ function renderDash(){
     </div>`;
 }
 
-el('dashAnt').onclick  = ()=>{ el('mesRef').value = mesVizinho(mesAtual(),-1); el('mesRef').onchange(); renderDash(); };
-el('dashProx').onclick = ()=>{ el('mesRef').value = mesVizinho(mesAtual(), 1); el('mesRef').onchange(); renderDash(); };
+if(el('dashAnt')) el('dashAnt').onclick  = ()=>{ el('mesRef').value = mesVizinho(mesAtual(),-1); el('mesRef').onchange(); renderDash(); };
+if(el('dashProx')) el('dashProx').onclick = ()=>{ el('mesRef').value = mesVizinho(mesAtual(), 1); el('mesRef').onchange(); renderDash(); };
 
 /* =========================================================
    Navegação + selects + boot
@@ -4095,12 +4311,12 @@ document.querySelectorAll('.subnav button').forEach(b=>{
 function preencherSelects(){
   const keep={}; ['opfCia','opfFonte','lancResp','lancConta','lancCia','lancFonte','portalResp','extConta','iaConta','opCia','opFonte','novaContaResp'].forEach(id=>keep[id]=el(id).value);
   if(parceiroLogado){ el('portalResp').innerHTML = `<option value="${parceiroLogado}">${esc(respNome(parceiroLogado))}</option>`; }
-  const minhas = parceiroLogado ? S.contas.filter(c=>c.respId===parceiroLogado) : S.contas;
+  const minhas = contasAZ(parceiroLogado ? S.contas.filter(c=>c.respId===parceiroLogado) : S.contas);
   const optContas = minhas.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
-  const optResps  = (parceiroLogado ? S.responsaveis.filter(r=>r.id===parceiroLogado) : S.responsaveis)
+  const optResps  = respsAZ(parceiroLogado ? S.responsaveis.filter(r=>r.id===parceiroLogado) : S.responsaveis)
                       .map(r=>`<option value="${r.id}">${esc(r.nome)}</option>`).join('');
-  const optCias   = S.cias.map(c=>`<option>${esc(c.nome)}</option>`).join('');
-  const optFontes = S.fontes.map(f=>`<option>${esc(f)}</option>`).join('');
+  const optCias   = ciasAZ().map(c=>`<option>${esc(c.nome)}</option>`).join('');
+  const optFontes = fontesAZ().map(f=>`<option>${esc(f)}</option>`).join('');
 
   el('fltResp').innerHTML  = '<option value="todos">Todos</option>'+optResps+(S.contas.some(c=>!c.respId)?'<option value="">Sem parceiro</option>':'');
   el('fltResp').value = S.filtro.resp;
@@ -4126,7 +4342,7 @@ function preencherSelects(){
 
 function renderFiltroContas(){
   const box=el('filtroContas'), ocultas=new Set(S.ocultas), f=S.filtro;
-  const vis = f.resp==='todos' ? S.contas : S.contas.filter(c=>(c.respId||'')===f.resp);
+  const vis = contasAZ(f.resp==='todos' ? S.contas : S.contas.filter(c=>(c.respId||'')===f.resp));
   box.innerHTML = vis.map(c=>`<label><input type="checkbox" data-conta="${c.id}" ${ocultas.has(c.id)?'':'checked'}>${esc(c.nome)}</label>`).join('')
     || '<span class="muted">Nenhuma conta para este parceiro.</span>';
   box.querySelectorAll('input').forEach(i=>i.onchange=()=>{
@@ -4167,7 +4383,7 @@ function ligarFiltros(){
   };
   el('lancResp').onchange = ()=>{
     const r=el('lancResp').value;
-    const cs = r==='todos' ? S.contas : S.contas.filter(c=>(c.respId||'')===r);
+    const cs = contasAZ(r==='todos' ? S.contas : S.contas.filter(c=>(c.respId||'')===r));
     el('lancConta').innerHTML='<option value="todas">Todas</option>'+cs.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
     renderLancamentos();
   };
@@ -4187,7 +4403,6 @@ function refreshMenosLancamentos(){
   renderKpis(); renderReport(); renderPortal();
   if(parceiroLogado) return;
   renderOps(); renderFinanceiro(); renderExtrato(); renderLateral();
-  if(el('p-dash').classList.contains('on')) renderDash();
 }
 
 function refreshAll(){
@@ -4208,7 +4423,7 @@ function refreshAll(){
   renderLancamentos(); renderFinanceiro();
   renderExtrato(); renderCadastros(); renderAcessos(); renderFechar(); renderStatusNuvem(); renderStatusVersao();
   renderLateral();
-  if(el('p-dash').classList.contains('on')) renderDash(); renderTagModo(); renderAparencia(); renderChaveIA();
+  renderTagModo(); renderAparencia(); renderChaveIA();
   const bf = el('btnForcarAtualizar'); if(bf) bf.onclick = forcarAtualizacao;
 }
 
