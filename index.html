@@ -31,7 +31,7 @@
   window.MP_USA_FIREBASE = !!window.MP_FIREBASE.apiKey;
 
   // carimbo da publicação — aparece em Mais → Ajustes → Versão do app
-  window.MP_VERSAO = "2026.09.22-2100";
+  window.MP_VERSAO = "2026.09.22-2230";
 
   // Chave da API do Google Gemini, usada na leitura de extrato.
   // Fica gravada aqui, no próprio app: vale para todos os aparelhos,
@@ -354,6 +354,27 @@ dialog::backdrop{background:rgba(10,30,50,.45)}
 
 /* ================= FECHAMENTO — layout limpo ================= */
 #report{background:#fff}
+/* no computador o relatório ocupa a largura toda da tela;
+   PDF e imagem continuam com largura fixa de documento */
+html[data-modo="pc"] #report{width:auto;margin:0;padding:18px 22px;border-radius:12px;container-type:inline-size;container-name:rep}
+html[data-modo="pc"] .report-scroll{overflow:visible}
+#report.fx-export{width:760px !important;padding:16px !important;border-radius:0 !important}
+.fx-duo{display:grid;gap:0 36px;align-items:start}
+@container rep (min-width: 980px){
+  .fx-duo{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
+  .fx{font-size:14px}
+  .fx-tab{font-size:13px}
+  .fx-ext .fx-l td{font-size:12.5px}
+  .fx-cia{font-size:13.5px;grid-template-columns:90px 1fr 50px 120px}
+}
+/* a página de Fechamento usa a largura toda da tela */
+html[data-modo="pc"] .wrap:has(#p-painel.on){max-width:none;margin-right:0;padding-right:22px}
+@media print{
+  .lateral{display:none !important}
+  html[data-modo] .wrap{margin:0 !important;padding:0 !important;max-width:none !important}
+  html[data-modo] #report{width:640px !important;padding:0 !important;container-type:normal}
+  .fx-duo{grid-template-columns:1fr !important}
+}
 .fx{color:#0E2436;padding:6px 8px 4px}
 .fx-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid #12304C;padding-bottom:10px}
 .fx-id{display:flex;align-items:center;gap:10px}
@@ -1269,9 +1290,8 @@ body.parceiro .subnav{display:none}
       </div>
     </div>
 
-    <div class="box dobra" id="boxOpsCad">
-      <button type="button" class="dobra-head"><svg class="seta" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg><h3>Operações cadastradas</h3></button>
-      <div class="dobra-corpo">
+    <div class="box" id="boxOpsCad">
+      <h3>Operações cadastradas</h3>
       <div class="grid2" style="margin-bottom:12px">
         <div class="field"><label for="opfDe">Data de</label><input type="date" id="opfDe"></div>
         <div class="field"><label for="opfAte">Data até</label><input type="date" id="opfAte"></div>
@@ -1283,7 +1303,6 @@ body.parceiro .subnav{display:none}
       </div>
       <div style="margin-bottom:12px"><button class="btn alt" id="opfLimpar" type="button">Limpar filtros</button></div>
       <div id="listaOps"></div>
-      </div>
     </div>
 
     <div class="box" id="boxLancar" hidden>
@@ -2060,8 +2079,12 @@ el('codigoInput').addEventListener('keydown', e=>{ if(e.key==='Enter') el('btnEn
 el('btnSair').onclick = ()=>{ if(confirm('Sair do portal?')) sairDoParceiro(); };
 
 /* ---------------- filtros ---------------- */
-function dadosDoMes(mk_){
-  const f = S.filtro, ocultas = new Set(S.ocultas);
+/* semFiltro: ignora os filtros da tela de Fechamento (parceiro, companhia,
+   fornecedor, faixa de valor e contas desmarcadas). O Financeiro usa assim:
+   o que se deve a cada parceiro não pode depender do que está filtrado no relatório. */
+const SEM_FILTRO = {resp:'todos',cia:'todas',fonte:'todas',min:'',max:''};
+function dadosDoMes(mk_, semFiltro){
+  const f = semFiltro ? SEM_FILTRO : S.filtro, ocultas = new Set(semFiltro ? [] : S.ocultas);
   const min = f.min===''?null:parseFloat(f.min), max = f.max===''?null:parseFloat(f.max);
   // no modo parceiro a restrição é obrigatória e não depende do filtro da tela
   const doResp = parceiroLogado ? contasDoResp(parceiroLogado)
@@ -2092,8 +2115,8 @@ function filtrosAtivos(){
 }
 
 /* ---------------- agregação ---------------- */
-function agrupar(mk_){
-  const lancs = dadosDoMes(mk_);
+function agrupar(mk_, semFiltro){
+  const lancs = dadosDoMes(mk_, semFiltro);
   const total  = lancs.reduce((a,l)=>a+(+l.resultado||0),0);
   const milhas = lancs.reduce((a,l)=>a+(+l.milhas||0),0);
   const custo  = lancs.reduce((a,l)=>a+(+l.custo||0),0);
@@ -2104,7 +2127,7 @@ function agrupar(mk_){
   const cias = Object.entries(porCia).map(([nome,valor])=>({nome,valor,pct: total? valor/total*100:0}))
                 .sort((a,b)=>b.valor-a.valor);
 
-  const contas = S.contas.filter(c=>!S.ocultas.includes(c.id)).map(c=>{
+  const contas = S.contas.filter(c=>semFiltro || !S.ocultas.includes(c.id)).map(c=>{
     const ls = lancs.filter(l=>l.contaId===c.id);
     const g = {};
     ls.forEach(l=>{
@@ -2204,6 +2227,7 @@ function ajustarEscala(){
   if(!box||!rep) return;
   ajustarExtratos();
   rep.style.transform='none'; box.style.height='auto';
+  if(document.documentElement.getAttribute('data-modo')==='pc') return;   // largura toda, sem escala
   const s = Math.min(1, box.clientWidth/640);
   if(s<1){ rep.style.transform='scale('+s+')'; box.style.height=(rep.offsetHeight*s)+'px'; }
 }
@@ -2317,6 +2341,7 @@ function renderReport(){
     </div>
     ${fa.length?`<div class="fx-filtros">Filtros: ${fa.map(x=>esc(x)).join(' · ')}</div>`:''}
 
+    <div class="fx-duo">
     ${d.cias.length?`<div class="fx-sec">
       <h4>Por companhia</h4>
       ${d.cias.map(c=>`<div class="fx-cia">
@@ -2335,6 +2360,7 @@ function renderReport(){
         <td class="n"><b>${money(r.total)}</b></td></tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="3">Soma dos parceiros</td><td class="n">${money(d.total)}</td></tr></tfoot></table>
     </div>`:''}
+    </div>
 
     <div class="fx-sec fx-quebra">
       <h4>Extrato por ${recibo?'conta':'parceiro e conta'}</h4>
@@ -2420,8 +2446,7 @@ function renderOps(){
   lista.forEach(o=>{ (porMes[mesKey(o.data)] ||= []).push(o); });
   const meses = Object.keys(porMes).sort().reverse();
 
-  // na primeira vez, deixa aberto só o mês do painel
-  if(!mesesAbertos.size) mesesAbertos.add(meses.includes(mesAtual()) ? mesAtual() : meses[0]);
+  // os meses começam fechados; abrem ao clicar
   // com filtro ativo, abre todos os meses que têm resultado
   if(filtrando) meses.forEach(m=>mesesAbertos.add(m));
 
@@ -2648,7 +2673,7 @@ function recalcularOperacao(o){
   o.status='lancada';
 }
 
-/* cards recolhíveis (Acúmulo cartão, Operações cadastradas): fechados ao abrir o app */
+/* card recolhível (Acúmulo cartão): fechado ao abrir o app */
 document.querySelectorAll('.dobra > .dobra-head').forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('aberta'));
 
 /* --- lançar em lote --- */
@@ -2861,7 +2886,7 @@ function renderLancamentos(){
    ========================================================= */
 let baixaResp = null, baixaSaldo = 0;
 function renderFinanceiro(){
-  const mk_ = mesAtual(), d = agrupar(mk_);
+  const mk_ = mesAtual(), d = agrupar(mk_, true);
   // fica na fila enquanto sobrar saldo, mesmo já tendo recebido parte
   const pend = d.responsaveis.filter(r=>r.id && r.saldo > CENTAVO);
   const somaSaldo = pend.reduce((a,r)=>a+r.saldo,0);
@@ -2997,7 +3022,7 @@ function valorAjuste(){
 }
 
 function previaAjuste(){
-  const mk_ = mesAtual(), d = agrupar(mk_);
+  const mk_ = mesAtual(), d = agrupar(mk_, true);
   const r = d.responsaveis.find(x=>x.id===ajusteResp) || {total:0, pago:0};
   const {desconto} = valorAjuste();
   const novo = centavos(r.total - desconto);
@@ -4011,9 +4036,10 @@ el('btnPng').onclick = async ()=>{
       s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
     const rep=el('report'), box=document.querySelector('.report-scroll');
     const tf=rep.style.transform, hb=box.style.height;
-    rep.style.transform='none'; box.style.height='auto';
-    const cv = await html2canvas(rep,{scale:2,backgroundColor:'#FFFFFF',useCORS:true,windowWidth:900});
-    rep.style.transform=tf; box.style.height=hb;
+    rep.style.transform='none'; box.style.height='auto'; rep.classList.add('fx-export');
+    let cv;
+    try{ cv = await html2canvas(rep,{scale:2,backgroundColor:'#FFFFFF',useCORS:true,windowWidth:900}); }
+    finally{ rep.classList.remove('fx-export'); rep.style.transform=tf; box.style.height=hb; }
     const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='fechamento-'+mesAtual()+'.png'; a.click();
   }catch(err){ alert('Não deu para gerar a imagem agora. Use "Salvar em PDF".'); }
   finally{ btn.innerHTML=old; btn.disabled=false; }
