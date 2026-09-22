@@ -1,4 +1,4 @@
-const CACHE = 'mp-central-01';
+const CACHE = 'mp-central-02';
 const ASSETS = ['./','./index.html','./instalar.html','./manifest.json','./logo.png',
   './icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable-512.png'];
 

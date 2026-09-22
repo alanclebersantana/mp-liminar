@@ -31,7 +31,7 @@
   window.MP_USA_FIREBASE = !!window.MP_FIREBASE.apiKey;
 
   // carimbo da publicação — aparece em Mais → Ajustes → Versão do app
-  window.MP_VERSAO = "2026.09.04-1838";
+  window.MP_VERSAO = "2026.09.22-1500";
 
   // Chave da API do Google Gemini, usada na leitura de extrato.
   // Fica gravada aqui, no próprio app: vale para todos os aparelhos,
@@ -966,7 +966,8 @@ body.parceiro .tabbar button[data-tab="fin"],
 body.parceiro .subnav button[data-sub="extrato"],
 body.parceiro .subnav button[data-sub="ia"],
 body.parceiro .subnav button[data-sub="cad"],
-body.parceiro .subnav button[data-sub="cfg"]{display:none !important}
+body.parceiro .subnav button[data-sub="cfg"],
+body.parceiro .subnav button[data-sub="acum"]{display:none !important}
 body.parceiro .subnav{display:none}
 
 /* ---- acesso dos parceiros (ajustes) ---- */
@@ -1025,6 +1026,7 @@ body.parceiro .subnav{display:none}
     <div class="lat-grupo no-parceiro">Configuração</div>
     <button data-ir="mais:cad" class="no-parceiro"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Cadastros</button>
     <button data-ir="mais:cfg" class="no-parceiro"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.2a2 2 0 0 1 2 2v.5a1.4 1.4 0 0 0 2.1 1.2l.4-.2a2 2 0 0 1 2.7.7l.5.9a2 2 0 0 1-.7 2.7l-.4.2a1.4 1.4 0 0 0 0 2.4l.4.2a2 2 0 0 1 .7 2.7l-.5.9a2 2 0 0 1-2.7.7l-.4-.2a1.4 1.4 0 0 0-2.1 1.2v.5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-.5a1.4 1.4 0 0 0-2.1-1.2l-.4.2a2 2 0 0 1-2.7-.7l-.5-.9a2 2 0 0 1 .7-2.7l.4-.2a1.4 1.4 0 0 0 0-2.4l-.4-.2a2 2 0 0 1-.7-2.7l.5-.9a2 2 0 0 1 2.7-.7l.4.2A1.4 1.4 0 0 0 9 4.7v-.5a2 2 0 0 1 2-2z"/></svg>Ajustes</button>
+    <button data-ir="mais:acum" class="no-parceiro"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4M15 15h3"/></svg>Acúmulo cartão</button>
   </nav>
   <div class="lat-pe">
     <button class="lat-modo" data-modo="mobile">
@@ -1178,8 +1180,9 @@ body.parceiro .subnav{display:none}
         <div class="field"><label for="opCia">CIA / programa</label><select id="opCia"></select></div>
         <div class="field"><label for="opFonte">Fornecedor dos pontos</label><select id="opFonte"></select></div>
         <div class="field"><label for="opCpmVenda">CPM venda (R$/milheiro)</label><input type="number" id="opCpmVenda" step="0.01" value="16.00"></div>
-        <div class="field"><label for="opModo">Informar custo por</label><select id="opModo"><option value="total">Custo total da operação</option><option value="cpm">CPM de custo</option><option value="sem">Sem custo</option></select></div>
-        <div class="field" id="wrapCustoTotal"><label for="opCustoTotal">Custo total (R$)</label><input type="number" id="opCustoTotal" step="0.01" placeholder="21000,00"></div>
+        <div class="field"><label for="opModo">Informar custo por</label><select id="opModo"><option value="fixo">Valor fixo por conta</option><option value="total">Custo total da operação</option><option value="cpm">CPM de custo</option><option value="sem">Sem custo</option></select></div>
+        <div class="field" id="wrapCustoConta"><label for="opCustoConta">Custo por conta (R$)</label><input type="number" id="opCustoConta" step="0.01" placeholder="500,00"></div>
+        <div class="field" id="wrapCustoTotal" hidden><label for="opCustoTotal">Custo total (R$)</label><input type="number" id="opCustoTotal" step="0.01" placeholder="21000,00"></div>
         <div class="field" id="wrapCpmCusto" hidden><label for="opCpmCusto">CPM custo (R$/milheiro)</label><input type="number" id="opCpmCusto" step="0.01" placeholder="15,62"></div>
       </div>
       <div class="field" style="margin-top:14px">
@@ -1189,48 +1192,28 @@ body.parceiro .subnav{display:none}
       </div>
       <p class="hint" style="margin:12px 0 0">Marque quantos tipos quiser. Com dois ou mais, aparece um campo para detalhar cada um.</p>
       <p class="hint" style="margin:6px 0 0">O <b>investidor</b> é escolhido conta a conta, na hora de lançar.</p>
+      <p class="hint" style="margin:6px 0 0">No modo <b>valor fixo por conta</b>, o custo total é o valor fixo × a quantidade de contas lançadas — e se ajusta sozinho quando uma conta entra ou sai.</p>
       <p class="hint" style="margin:6px 0 0">No modo <b>custo total</b>, o CPM de custo é calculado no lançamento, com rateio proporcional às milhas de cada conta.</p>
       <div style="margin-top:12px"><button class="btn" id="btnSalvarOp">Cadastrar operação</button></div>
     </div>
 
-    <div class="box">
-      <h3>Adicionar clube</h3>
-      <p class="hint">Mensalidade de clube de pontos. Vai direto para as contas escolhidas e
-        não entra na lista de operações. A mesma conta pode receber o clube quantas vezes precisar.</p>
-
-      <div class="field">
-        <label>Programa</label>
-        <div class="checkrow" id="clProgramas"></div>
+    <div class="box" id="boxAcumulo">
+      <h3>Acúmulo cartão</h3>
+      <p class="hint">Pontos de cartão que caíram nas contas. O <b>investidor é sempre o parceiro</b>, então ele recebe o valor
+        integral. Valor lançado = pontos ÷ 1.000 × valor fixo da companhia (definido em <b>Ajustes › Acúmulo cartão</b>).</p>
+      <div class="grid2">
+        <div class="field"><label for="acCia">Companhia</label><select id="acCia"></select></div>
+        <div class="field"><label for="acData">Data</label><input type="date" id="acData"></div>
       </div>
-      <div class="field" id="wrapClOutro" hidden style="margin-top:10px;max-width:280px">
-        <label for="clOutro">Nome do programa</label>
-        <input type="text" id="clOutro" placeholder="ex.: TudoAzul Clube">
+      <div class="params" id="acTaxa" style="margin-top:12px"></div>
+      <div class="field" style="margin-top:12px">
+        <label>Parceiros <button type="button" class="mini-add" id="acTodos">todos</button> <button type="button" class="mini-add" id="acLimpar">limpar</button></label>
+        <div class="checkrow" id="acParceiros"></div>
       </div>
-
-      <div class="grid2" style="margin-top:12px">
-        <div class="field"><label for="clData">Data</label><input type="date" id="clData"></div>
-        <div class="field"><label for="clValor">Valor do clube (R$)</label>
-          <input type="number" id="clValor" step="0.01" placeholder="79,90"></div>
-        <div class="field"><label for="clPontos">Pontos recebidos</label>
-          <input type="number" id="clPontos" placeholder="10000"></div>
-        <div class="field"><label for="clInvestidor">Investidor</label>
-          <select id="clInvestidor"></select></div>
-      </div>
-      <p class="hint" style="margin:10px 0 0">O valor e os pontos valem <b>para cada conta marcada</b>.</p>
-      <div style="margin-top:14px"><button class="btn" id="btnAbrirClube">Lançar clube »</button></div>
-    </div>
-
-    <div class="box" id="boxLancarClube" hidden>
-      <h3>Lançar clube nas contas</h3>
-      <div class="params" id="clParams"></div>
-      <div class="toolbar" style="margin-bottom:10px">
-        <button class="btn alt acao-min" id="clTodas" type="button">Marcar todas</button>
-        <button class="btn alt acao-min" id="clNenhuma" type="button">Desmarcar</button>
-        <button class="btn alt acao-min" id="clFechar" type="button">Fechar</button>
-      </div>
-      <div id="clContas"></div>
-      <div class="totbar" id="clTotais"></div>
-      <div style="margin-top:12px"><button class="btn" id="btnLancarClube">Confirmar lançamento</button></div>
+      <p class="hint" style="margin:10px 0 0">Marque quantos parceiros quiser e informe os pontos que caíram em cada conta. Contas com 0 pontos não são lançadas.</p>
+      <div id="acContas" style="margin-top:10px"></div>
+      <div class="totbar" id="acTotais"></div>
+      <div style="margin-top:12px"><button class="btn" id="btnLancarAcumulo">Lançar acúmulo</button></div>
     </div>
 
     <div class="box">
@@ -1302,6 +1285,7 @@ body.parceiro .subnav{display:none}
       <button data-sub="ia">Ler extrato — IA</button>
       <button data-sub="cad">Cadastros</button>
       <button data-sub="cfg">Ajustes</button>
+      <button data-sub="acum">Acúmulo cartão</button>
     </div>
 
     <!-- portal -->
@@ -1385,6 +1369,16 @@ body.parceiro .subnav{display:none}
           <button class="btn" id="addFonte">Adicionar</button>
         </div>
         <div class="pill-list" id="listaFontes"></div>
+      </div>
+    </div>
+
+    <!-- valores fixos do acúmulo cartão -->
+    <div class="sub" id="s-acum">
+      <div class="box">
+        <h3>Acúmulo cartão — valores fixos</h3>
+        <p class="hint">Valor pago ao parceiro por milheiro (1.000 pontos) de acúmulo de cartão, por companhia.
+          Ex.: Azul 15,00 → 10.000 pontos = R$ 150,00. Novas companhias aparecem aqui depois de cadastradas em <b>Cadastros</b>.</p>
+        <div id="listaTaxasAcumulo"></div>
       </div>
     </div>
 
@@ -1485,7 +1479,8 @@ body.parceiro .subnav{display:none}
       <div class="field"><label for="edCia">CIA / programa</label><select id="edCia"></select></div>
       <div class="field"><label for="edFonte">Fornecedor dos pontos</label><select id="edFonte"></select></div>
       <div class="field"><label for="edCpmVenda">CPM venda (R$/milheiro)</label><input type="number" id="edCpmVenda" step="0.01"></div>
-      <div class="field"><label for="edModo">Informar custo por</label><select id="edModo"><option value="total">Custo total da operação</option><option value="cpm">CPM de custo</option><option value="sem">Sem custo</option></select></div>
+      <div class="field"><label for="edModo">Informar custo por</label><select id="edModo"><option value="fixo">Valor fixo por conta</option><option value="total">Custo total da operação</option><option value="cpm">CPM de custo</option><option value="sem">Sem custo</option></select></div>
+      <div class="field" id="edWrapConta"><label for="edCustoConta">Custo por conta (R$)</label><input type="number" id="edCustoConta" step="0.01"></div>
       <div class="field" id="edWrapTotal"><label for="edCustoTotal">Custo total (R$)</label><input type="number" id="edCustoTotal" step="0.01"></div>
       <div class="field" id="edWrapCpm" hidden><label for="edCpmCusto">CPM custo (R$/milheiro)</label><input type="number" id="edCpmCusto" step="0.01"></div>
     </div>
@@ -1522,6 +1517,13 @@ body.parceiro .subnav{display:none}
       <div class="field"><label for="edClInvestidor">Investidor</label><select id="edClInvestidor"></select></div>
       <div class="field" id="wrapEdClValor"><label for="edClValor">Valor do clube (R$)</label><input type="number" id="edClValor" step="0.01"></div>
       <div class="field"><label for="edClPontos" id="rotuloPontos">Pontos recebidos</label><input type="number" id="edClPontos"></div>
+      <div class="field" id="wrapEdCusto"><label for="edCusto">Custo desta conta (R$)</label><input type="number" id="edCusto" step="0.01">
+        <button type="button" class="mini-add" id="edCustoAuto" style="margin-top:6px;align-self:flex-start">usar custo da operação</button></div>
+    </div>
+    <div class="box" id="wrapEdUsados" style="margin:12px 0 0;padding:12px">
+      <div class="field" style="max-width:280px"><label for="edUsados">Pontos utilizados pelo parceiro</label>
+        <input type="number" id="edUsados" min="0" placeholder="0"></div>
+      <p class="hint" style="margin:8px 0 0">Subtrai os pontos que o parceiro usou <b>só desta conta</b>. O valor das outras contas da mesma operação não muda.</p>
     </div>
     <div class="totbar" id="edLancPrevia" style="margin:12px 0 0"></div>
     <p class="hint" id="edLancAviso" style="margin:8px 0 0"></p>
@@ -1722,27 +1724,65 @@ function ratear(total, pesos){
   return partes.map(c=>c/100);
 }
 
-/* op: {cpmVenda, modo, cpmCusto, custoTotal}
-   linhas: [{milhas, investidor}] → mesma ordem, com valor/custo/resultado */
+/* op: {cpmVenda, modo, cpmCusto, custoTotal, custoConta}
+   linhas: [{milhas, pontosUsados, custoManual, investidor}] → mesma ordem,
+   com valor/custo/resultado.
+
+   · milhas        = pontos LÍQUIDOS da conta (já sem os usados pelo parceiro)
+   · pontosUsados  = pontos que o parceiro usou desta conta; só reduzem o VALOR
+                     desta conta. Custo e rateio continuam pelas milhas brutas,
+                     então as outras contas não mudam.
+   · custoManual   = custo ajustado à mão para esta conta; fica fixo e não mexe
+                     no custo das demais.
+   · modo "fixo"   → cada conta custa op.custoConta; custo total = fixo × nº de contas */
+function milhasBrutas(l){ return (+l.milhas||0) + Math.max(0, +l.pontosUsados||0); }
+function temManual(l){ return l.custoManual !== null && l.custoManual !== undefined && l.custoManual !== ''; }
+
 function calcularOperacao(op, linhas){
-  const milhas = linhas.map(l=>+l.milhas||0);
-  const totalMilhas = milhas.reduce((a,m)=>a+m,0);
-  const custos = op.modo==='total' ? ratear(op.custoTotal, milhas)
-               : op.modo==='cpm'   ? milhas.map(m=>centavos(m/1000*(+op.cpmCusto||0)))
-               : milhas.map(()=>0);
-  // CPM de custo da operação (informativo): no rateio é o custo total ÷ milheiros
-  const cpmCusto = op.modo==='cpm'   ? (+op.cpmCusto||0)
-                 : op.modo==='total' ? (totalMilhas ? (+op.custoTotal||0)/(totalMilhas/1000) : 0)
+  const liquidas = linhas.map(l=>+l.milhas||0);
+  const brutas   = linhas.map(milhasBrutas);
+  const manual   = linhas.map(l=>temManual(l) ? centavos(l.custoManual) : null);
+  let custos;
+  if(op.modo==='total'){
+    // quem tem custo ajustado fica fora do rateio; o restante do total é
+    // repartido entre as outras contas, então o custo total não muda
+    const livres = linhas.map((l,i)=>manual[i]===null);
+    const jaFixo = manual.reduce((a,c)=>a+(c||0),0);
+    const partes = ratear(Math.max(0,(+op.custoTotal||0)-jaFixo), brutas.map((m,i)=>livres[i]?m:0));
+    custos = linhas.map((l,i)=> livres[i] ? partes[i] : manual[i]);
+  } else {
+    custos = linhas.map((l,i)=>{
+      if(manual[i]!==null) return manual[i];
+      if(op.modo==='fixo') return centavos(+op.custoConta||0);
+      if(op.modo==='cpm')  return centavos(brutas[i]/1000*(+op.cpmCusto||0));
+      return 0;
+    });
+  }
+  const totalBrutas = brutas.reduce((a,m)=>a+m,0);
+  const somaCustos  = custos.reduce((a,c)=>a+c,0);
+  // CPM de custo da operação (informativo)
+  const cpmCusto = op.modo==='cpm' ? (+op.cpmCusto||0)
+                 : (op.modo==='total' || op.modo==='fixo') ? (totalBrutas ? somaCustos/(totalBrutas/1000) : 0)
                  : 0;
   const itens = linhas.map((l,i)=>{
-    const valor = centavos(milhas[i]/1000*(+op.cpmVenda||0));
+    const valor = centavos(liquidas[i]/1000*(+op.cpmVenda||0));
     const custo = custos[i];
-    return {milhas:milhas[i], investidor:l.investidor, valor, custo, cpmCusto,
+    return {milhas:liquidas[i], pontosUsados:Math.max(0,+l.pontosUsados||0),
+            custoManual: manual[i], investidor:l.investidor, valor, custo, cpmCusto,
             resultado: calcResultado(valor, custo, l.investidor)};
   });
   const soma = k => centavos(itens.reduce((a,x)=>a+x[k],0));
-  return {itens, cpmCusto, milhas:totalMilhas,
+  return {itens, cpmCusto, milhas:liquidas.reduce((a,m)=>a+m,0),
           valor:soma('valor'), custo:soma('custo'), resultado:soma('resultado')};
+}
+
+/* custo total "de referência" da operação, como aparece na lista:
+   no modo fixo é o valor por conta × contas lançadas (ajuste individual
+   de uma conta não altera esse número) */
+function custoTotalOp(o, n){
+  if(o.modo==='fixo')  return centavos((+o.custoConta||0) * n);
+  if(o.modo==='total') return +o.custoTotal||0;
+  return null;
 }
 
 /* custo na tabela: quando o parceiro bancou, o custo aparece riscado
@@ -1780,6 +1820,7 @@ function migrar(){
   });
   if(!S.cfg) S.cfg = {titulo:'Fechamento Mensal',topN:3};
   if(!S.cfg.aparencia) S.cfg.aparencia = {tema:'claro', escala:100, paleta:'1'};
+  if(!S.cfg.acumuloCartao || typeof S.cfg.acumuloCartao!=='object') S.cfg.acumuloCartao = {};
   if(!S.filtro) S.filtro = {resp:'todos',cia:'todas',fonte:'todas',min:'',max:''};
   if(typeof S.chaveIA !== 'string') S.chaveIA = '';
   S.responsaveis.forEach(r=>{ if(r.tel===undefined) r.tel=''; if(r.codigo===undefined) r.codigo=''; if(r.email===undefined) r.email=''; });
@@ -1787,6 +1828,8 @@ function migrar(){
     if(l.valor===undefined)  l.valor=0;
     if(l.milhas===undefined) l.milhas=0;
     if(l.custo===undefined)  l.custo=0;
+    if(l.pontosUsados===undefined) l.pontosUsados=0;
+    if(l.custoManual===undefined)  l.custoManual=null;
     // lançamentos antigos herdam o investidor que estava na operação
     if(!l.investidor){
       const o = S.operacoes.find(x=>x.id===l.operacaoId);
@@ -2280,7 +2323,9 @@ function renderOps(){
 
   const linha = o => {
     const usados = S.lancamentos.filter(l=>l.operacaoId===o.id);
-    const custoTxt = o.modo==='sem' ? '—' : o.modo==='cpm' ? money(o.cpmCusto)+'/mil' : money(o.custoTotal);
+    const custoTxt = o.modo==='sem' ? '—' : o.modo==='cpm' ? money(o.cpmCusto)+'/mil'
+      : o.modo==='fixo' ? `${money(custoTotalOp(o, usados.length))}<span class="op-sub">${money(o.custoConta)}/conta × ${usados.length}</span>`
+      : money(o.custoTotal);
     // o investidor agora é por conta: mostra o resumo do que foi lançado
     const cont = {};
     usados.forEach(l=>{ cont[l.investidor||'—'] = (cont[l.investidor||'—']||0)+1; });
@@ -2390,7 +2435,7 @@ function renderMulti(prefixo, campo, estado){
 
 /* botões "+ nova/novo" ao lado dos campos do cadastro de operação */
 document.addEventListener('click', e=>{
-  const b = e.target.closest('.mini-add'); if(!b) return;
+  const b = e.target.closest('.mini-add[data-novo]'); if(!b) return;
   const tipo = b.dataset.novo;
   const rotulos = {tipo:'tipo de operação'};
   const nome = (prompt('Nome do novo ' + rotulos[tipo] + ':') || '').trim();
@@ -2407,6 +2452,7 @@ document.addEventListener('click', e=>{
 
 el('opModo').onchange = ()=>{
   const m = el('opModo').value;
+  el('wrapCustoConta').hidden = m!=='fixo';
   el('wrapCustoTotal').hidden = m!=='total';
   el('wrapCpmCusto').hidden   = m!=='cpm';
 };
@@ -2420,9 +2466,10 @@ el('btnSalvarOp').onclick = ()=>{
     cpmVenda:parseFloat(el('opCpmVenda').value)||0, modo,
     custoTotal: modo==='total' ? (parseFloat(el('opCustoTotal').value)||0) : null,
     cpmCusto:   modo==='cpm'   ? (parseFloat(el('opCpmCusto').value)||0)   : null,
+    custoConta: modo==='fixo'  ? (parseFloat(el('opCustoConta').value)||0) : null,
     status:'aberta'
   });
-  el('opRef').value=''; el('opCustoTotal').value=''; el('opCpmCusto').value='';
+  el('opRef').value=''; el('opCustoTotal').value=''; el('opCpmCusto').value=''; el('opCustoConta').value='';
   selOp.tipos=[];
   renderMulti('op','tipos',selOp);
   save(); refreshAll();
@@ -2433,6 +2480,7 @@ el('btnSalvarOp').onclick = ()=>{
 let opEditando = null;
 el('edModo').onchange = ()=>{
   const m = el('edModo').value;
+  el('edWrapConta').hidden = m!=='fixo';
   el('edWrapTotal').hidden = m!=='total';
   el('edWrapCpm').hidden   = m!=='cpm';
 };
@@ -2448,9 +2496,10 @@ function abrirEditarOp(id){
   el('edModo').value=o.modo; el('edModo').onchange();
   el('edCustoTotal').value = o.custoTotal ?? '';
   el('edCpmCusto').value   = o.cpmCusto ?? '';
+  el('edCustoConta').value = o.custoConta ?? '';
   const n = S.lancamentos.filter(l=>l.operacaoId===id).length;
   el('edAviso').textContent = n
-    ? `Esta operação já está lançada em ${n} conta(s). Ao salvar, os valores dessas contas são recalculados com as milhas atuais.`
+    ? `Esta operação já está lançada em ${n} conta(s). Ao salvar, os valores dessas contas são recalculados com as milhas atuais. Custos ajustados à mão em uma conta são mantidos.`
     : 'Operação ainda não lançada em nenhuma conta.';
   el('dlgOp').showModal();
 }
@@ -2464,7 +2513,8 @@ el('salvarOpEdit').onclick = ()=>{
     tipos: selEd.tipos.map(x=>({...x})), tipo: nomesDe(selEd.tipos),
     cpmVenda: parseFloat(el('edCpmVenda').value)||0, modo,
     custoTotal: modo==='total' ? (parseFloat(el('edCustoTotal').value)||0) : null,
-    cpmCusto:   modo==='cpm'   ? (parseFloat(el('edCpmCusto').value)||0)   : null
+    cpmCusto:   modo==='cpm'   ? (parseFloat(el('edCpmCusto').value)||0)   : null,
+    custoConta: modo==='fixo'  ? (parseFloat(el('edCustoConta').value)||0) : null
   });
   recalcularOperacao(o);
   save(); el('dlgOp').close(); refreshAll();
@@ -2481,7 +2531,7 @@ el('excluirOp').onclick = ()=>{
 /* recalcula os lançamentos de uma operação mantendo as milhas de cada conta */
 function recalcularOperacao(o){
   const ls = S.lancamentos.filter(l=>l.operacaoId===o.id);
-  if(!ls.length){ o.status='aberta'; return; }
+  if(!ls.length){ o.status='aberta'; if(o.modo==='fixo') o.custoTotal = 0; return; }
   ls.forEach(l=>{ if(!l.investidor) l.investidor = INVESTIDORES[0]; });
   const calc = calcularOperacao(o, ls);
   ls.forEach((l,i)=>{
@@ -2490,6 +2540,7 @@ function recalcularOperacao(o){
     l.cpmVenda=o.cpmVenda; l.cpmCusto=x.cpmCusto;
     l.valor=x.valor; l.custo=x.custo; l.resultado=x.resultado;
   });
+  if(o.modo==='fixo') o.custoTotal = custoTotalOp(o, ls.length);
   o.status='lancada';
 }
 
@@ -2503,6 +2554,7 @@ function abrirLancar(id){
   el('lancarTitulo').textContent = 'Lançar: ' + opAtual.ref;
   const custoTxt = opAtual.modo==='sem' ? 'Sem custo'
     : opAtual.modo==='cpm' ? 'Custo: '+money(opAtual.cpmCusto)+'/mil'
+    : opAtual.modo==='fixo' ? 'Custo: '+money(opAtual.custoConta)+' por conta · total = fixo × contas'
     : 'Custo: '+money(opAtual.custoTotal)+' no total · CPM rateado no lançamento';
   el('lancarParams').innerHTML = [
     opAtual.ref, opAtual.data.split('-').reverse().join('/'), opAtual.cia, opAtual.tipo,
@@ -2519,7 +2571,7 @@ function abrirLancar(id){
         <td style="font-weight:600;white-space:nowrap">${esc(c.nome)}</td>
         <td style="color:var(--muted)">${esc(respNome(c.respId))}</td>
         <td><select data-inv="${c.id}" style="min-width:140px">${opcoesInvestidor(j ? j.investidor : INVESTIDORES[0])}</select></td>
-        <td style="text-align:right"><input type="number" data-milhas="${c.id}" value="${j? j.milhas : (c.milhasPadrao||0)}" style="width:110px;text-align:right"></td>
+        <td style="text-align:right"><input type="number" data-milhas="${c.id}" value="${j? milhasBrutas(j) : (c.milhasPadrao||0)}" style="width:110px;text-align:right">${j&&+j.pontosUsados?`<span class="op-sub">−${num(j.pontosUsados)} usados</span>`:''}</td>
         <td data-rec="${c.id}" class="money" style="text-align:right;white-space:nowrap">—</td>
       </tr>`;
     }).join('')}</tbody></table></div>`;
@@ -2541,12 +2593,18 @@ function abrirLancar(id){
   calcLancar();
   el('boxLancar').scrollIntoView({behavior:'smooth',block:'start'});
 }
+/* as milhas digitadas são as brutas; o que a conta já tinha de pontos
+   usados pelo parceiro e de custo ajustado à mão é mantido no relançamento */
 function selecionadas(){
-  return [...el('contasPart').querySelectorAll('[data-part]:checked')].map(i=>({
-    contaId: i.dataset.part,
-    milhas: parseFloat(el('contasPart').querySelector(`[data-milhas="${i.dataset.part}"]`).value)||0,
-    investidor: (el('contasPart').querySelector(`[data-inv="${i.dataset.part}"]`)||{}).value || INVESTIDORES[0]
-  })).filter(x=>x.milhas>0);
+  return [...el('contasPart').querySelectorAll('[data-part]:checked')].map(i=>{
+    const contaId = i.dataset.part;
+    const brutas = parseFloat(el('contasPart').querySelector(`[data-milhas="${contaId}"]`).value)||0;
+    const j = opAtual && S.lancamentos.find(l=>l.operacaoId===opAtual.id && l.contaId===contaId);
+    const usados = j ? Math.min(brutas, Math.max(0,+j.pontosUsados||0)) : 0;
+    return {contaId, brutas, milhas: brutas - usados, pontosUsados: usados,
+      custoManual: j && temManual(j) ? j.custoManual : null,
+      investidor: (el('contasPart').querySelector(`[data-inv="${contaId}"]`)||{}).value || INVESTIDORES[0]};
+  }).filter(x=>x.brutas>0);
 }
 function calcLancar(){
   if(!opAtual) return;
@@ -2568,7 +2626,7 @@ function calcLancar(){
     <div><span>Milhas</span><b>${num(milhas)}</b></div>
     <div><span>CPM custo (calc.)</span><b>${cpmCusto?'R$ '+cpmCusto.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4}):'—'}</b></div>
     <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
-    <div><span>Custo</span><b class="r">${money(custo)}</b></div>
+    <div><span>Custo${opAtual.modo==='fixo'?` · ${money(opAtual.custoConta)} × ${sel.length}`:''}</span><b class="r">${money(custo)}</b></div>
     <div><span>A receber${nParc?` · ${nParc} pelo parceiro`:''}</span><b class="${receber>=0?'g':'r'}">${money(receber)}</b></div>
     <div class="push"></div>`;
 }
@@ -2587,9 +2645,11 @@ el('btnLancarOp').onclick = ()=>{
     S.lancamentos.push({id:uid(),operacaoId:opAtual.id,opRef:opAtual.ref,opTipo:opAtual.tipo,
       contaId:s.contaId,data:opAtual.data,cia:opAtual.cia,fonte:opAtual.fonte,
       investidor:s.investidor,
-      milhas:x.milhas,cpmVenda:opAtual.cpmVenda,cpmCusto:x.cpmCusto,
+      milhas:x.milhas,pontosUsados:x.pontosUsados,custoManual:x.custoManual,
+      cpmVenda:opAtual.cpmVenda,cpmCusto:x.cpmCusto,
       valor:x.valor,custo:x.custo,resultado:x.resultado,obs:''});
   });
+  if(opAtual.modo==='fixo') opAtual.custoTotal = custoTotalOp(opAtual, sel.length);
   opAtual.status='lancada';
   save();
   el('mesRef').value = mesKey(opAtual.data);
@@ -2644,9 +2704,9 @@ function renderLancamentos(){
           <td><span style="font-weight:600">${esc(o?o.ref:'—')}</span><span class="op-sub">${esc(l.fonte)}</span></td>
           <td style="color:${ciaColor(l.cia)};font-weight:700">${esc(l.cia)}</td>
           <td><select data-linv="${l.id}" style="min-width:135px">${opcoesInvestidor(l.investidor)}</select></td>
-          <td style="text-align:right;font-variant-numeric:tabular-nums">${num(l.milhas)}</td>
+          <td style="text-align:right;font-variant-numeric:tabular-nums">${num(l.milhas)}${+l.pontosUsados?`<span class="op-sub">−${num(l.pontosUsados)} usados</span>`:''}</td>
           <td style="text-align:right;font-variant-numeric:tabular-nums">${money(l.valor)}</td>
-          <td style="text-align:right;color:#B4232A;font-variant-numeric:tabular-nums" data-cus="${l.id}">${celulaCusto(l)}</td>
+          <td style="text-align:right;color:#B4232A;font-variant-numeric:tabular-nums" data-cus="${l.id}">${celulaCusto(l)}${temManual(l)&&l.operacaoId?'<span class="op-sub">ajustado</span>':''}</td>
           <td style="text-align:right" class="money" data-res="${l.id}">${money(l.resultado)}</td>
           <td style="text-align:right;white-space:nowrap">
             <button class="rowbtn" data-editlanc="${l.id}" title="Editar lançamento">
@@ -2880,13 +2940,9 @@ function renderExtrato(){
 
 
 /* =========================================================
-   Clube de pontos
-   Mensalidade lançada direto nas contas. Não vira operação,
-   então não aparece na lista de operações cadastradas.
+   Programas e lançamentos avulsos (clube antigo e acúmulo cartão)
+   Não viram operação, então não aparecem na lista de operações.
    ========================================================= */
-const PROGRAMAS_CLUBE = ['LATAM','SMILES','AZUL','Outros'];
-let progClube = 'SMILES';
-
 function corDoPrograma(nome){
   const j = {SMILES:'#F0821E', AZUL:'#0B4EA2', LATAM:'#E8114B'};
   return j[nome.toUpperCase()] || '#12304C';
@@ -2894,212 +2950,264 @@ function corDoPrograma(nome){
 
 /* garante que o programa e a fonte existam nos cadastros,
    senão o relatório perderia a cor e o agrupamento */
-function garantirCadastros(cia){
+function garantirCadastros(cia, fonte){
   if(!S.cias.some(c=>c.nome.toUpperCase()===cia.toUpperCase()))
     S.cias.push({nome:cia, cor:corDoPrograma(cia)});
-  if(!S.fontes.includes('CLUBE')) S.fontes.push('CLUBE');
+  if(!S.fontes.includes(fonte)) S.fontes.push(fonte);
 }
 
-function renderInvestidorClube(){
-  const s = el('clInvestidor'); if(!s) return;
-  const atual = s.value;
-  s.innerHTML = opcoesInvestidor(atual || INVESTIDORES[0]);
-}
+// clubes lançados antes do acúmulo cartão continuam editáveis
+const ehClube   = l => l.opTipo === 'Clube' && !l.operacaoId;
+const ehAcumulo = l => l.opTipo === TIPO_ACUMULO && !l.operacaoId;
 
-function renderProgramasClube(){
-  const box = el('clProgramas'); if(!box) return;
-  box.innerHTML = PROGRAMAS_CLUBE.map(p=>
-    `<label><input type="radio" name="progclube" value="${esc(p)}" ${p===progClube?'checked':''}>${esc(p)}</label>`).join('');
-  box.querySelectorAll('input').forEach(i=>i.onchange=()=>{
-    progClube = i.value;
-    el('wrapClOutro').hidden = progClube !== 'Outros';
-    if(progClube === 'Outros') el('clOutro').focus();
+/* =========================================================
+   Acúmulo cartão
+   Valor fixo por milheiro, por companhia (Ajustes › Acúmulo cartão).
+   valor = pontos ÷ 1000 × valor fixo · investidor sempre PARCEIRO
+   ========================================================= */
+const TIPO_ACUMULO  = 'Acúmulo cartão';
+const FONTE_ACUMULO = 'CARTÃO';
+const taxaAcumulo = cia => +((S.cfg.acumuloCartao||{})[cia]) || 0;
+const acParceirosSel = new Set();
+const acPontos = {};          // contaId → pontos digitados (sobrevive a re-render)
+
+function renderAcumulo(){
+  const sel = el('acCia'); if(!sel) return;
+  const atual = sel.value;
+  sel.innerHTML = S.cias.map(c=>`<option ${c.nome===atual?'selected':''}>${esc(c.nome)}</option>`).join('');
+
+  // parceiros que têm ao menos uma conta
+  const comConta = S.responsaveis.filter(r=>S.contas.some(c=>c.respId===r.id));
+  [...acParceirosSel].forEach(id=>{ if(!comConta.some(r=>r.id===id)) acParceirosSel.delete(id); });
+  el('acParceiros').innerHTML = comConta.length ? comConta.map(r=>
+    `<label><input type="checkbox" value="${r.id}" ${acParceirosSel.has(r.id)?'checked':''}>${esc(r.nome)}</label>`).join('')
+    : '<span class="muted">Cadastre parceiros com contas primeiro.</span>';
+  el('acParceiros').querySelectorAll('input').forEach(i=>i.onchange=()=>{
+    i.checked ? acParceirosSel.add(i.value) : acParceirosSel.delete(i.value);
+    renderContasAcumulo();
   });
-  el('wrapClOutro').hidden = progClube !== 'Outros';
+  renderContasAcumulo();
 }
 
-function nomeDoClube(){
-  return progClube === 'Outros' ? el('clOutro').value.trim().toUpperCase() : progClube;
+function renderContasAcumulo(){
+  const box = el('acContas'); if(!box) return;
+  const cia = el('acCia').value, taxa = taxaAcumulo(cia);
+  el('acTaxa').innerHTML = cia ? (taxa
+    ? `<span>${esc(cia)}</span><span class="gold">${money(taxa)} por milheiro</span>`
+    : `<span class="gold">Sem valor fixo para ${esc(cia)}</span><span>defina em Ajustes › Acúmulo cartão</span>`) : '';
+
+  const contas = S.contas.filter(c=>acParceirosSel.has(c.respId));
+  box.innerHTML = contas.length ? `<div style="overflow-x:auto"><table class="list">
+    <thead><tr><th>Conta</th><th>Parceiro</th><th style="text-align:right">Pontos que caíram</th><th style="text-align:right">Valor</th></tr></thead>
+    <tbody>${contas.map(c=>`<tr>
+      <td style="font-weight:600;white-space:nowrap">${esc(c.nome)}</td>
+      <td style="color:var(--muted)">${esc(respNome(c.respId))}</td>
+      <td style="text-align:right"><input type="number" min="0" data-acp="${c.id}" value="${acPontos[c.id]||''}" placeholder="0" style="width:120px;text-align:right"></td>
+      <td style="text-align:right;white-space:nowrap" class="money" data-acv="${c.id}">—</td>
+    </tr>`).join('')}</tbody></table></div>`
+    : '<div class="empty">Marque um ou mais parceiros para ver as contas.</div>';
+  box.querySelectorAll('[data-acp]').forEach(i=>i.oninput=()=>{ acPontos[i.dataset.acp] = parseFloat(i.value)||0; totaisAcumulo(); });
+  totaisAcumulo();
 }
 
-function renderContasClube(){
-  const box = el('clContas'); if(!box) return;
-  box.innerHTML = S.contas.length ? `<div style="overflow-x:auto"><table class="list">
-    <thead><tr><th></th><th>Conta</th><th>Parceiro</th><th style="text-align:right">Clubes no mês</th></tr></thead>
-    <tbody>${S.contas.map(c=>{
-      const n = S.lancamentos.filter(l=>l.contaId===c.id && ehClube(l) && mesKey(l.data)===mesAtual()).length;
-      return `<tr>
-        <td style="width:30px"><input type="checkbox" data-cl="${c.id}" style="width:17px;height:17px;accent-color:var(--navy)"></td>
-        <td style="font-weight:600;white-space:nowrap">${esc(c.nome)}</td>
-        <td style="color:var(--muted)">${esc(respNome(c.respId))}</td>
-        <td style="text-align:right;color:var(--muted)">${n || '—'}</td>
-      </tr>`;
-    }).join('')}</tbody></table></div>` : '<div class="empty">Cadastre uma conta primeiro.</div>';
-  box.querySelectorAll('input').forEach(i=>i.onchange=totaisClube);
-  totaisClube();
+function linhasAcumulo(){
+  const taxa = taxaAcumulo(el('acCia').value);
+  return S.contas.filter(c=>acParceirosSel.has(c.respId) && (acPontos[c.id]||0) > 0)
+    .map(c=>({conta:c, pontos:acPontos[c.id], valor:centavos(acPontos[c.id]/1000*taxa)}));
 }
 
-const marcadasClube = () => [...el('clContas').querySelectorAll('[data-cl]:checked')].map(i=>i.dataset.cl);
-
-function totaisClube(){
-  const box = el('clTotais'); if(!box) return;
-  const n = marcadasClube().length;
-  const valor  = parseFloat(el('clValor').value)  || 0;
-  const pontos = parseFloat(el('clPontos').value) || 0;
-  box.innerHTML = `
-    <div><span>Contas</span><b>${n}</b></div>
-    <div><span>Pontos no total</span><b>${num(pontos*n)}</b></div>
-    <div><span>Valor total</span><b class="r">${money(valor*n)}</b></div>
+function totaisAcumulo(){
+  const ls = linhasAcumulo();
+  el('acContas').querySelectorAll('[data-acv]').forEach(td=>{
+    const x = ls.find(l=>l.conta.id===td.dataset.acv);
+    td.textContent = x ? money(x.valor) : '—';
+    td.style.opacity = x ? '1' : '.45';
+  });
+  el('acTotais').innerHTML = `
+    <div><span>Contas</span><b>${ls.length}</b></div>
+    <div><span>Pontos</span><b>${num(ls.reduce((a,l)=>a+l.pontos,0))}</b></div>
+    <div><span>Valor lançado (parceiro)</span><b class="g">${money(ls.reduce((a,l)=>a+l.valor,0))}</b></div>
     <div class="push"></div>`;
 }
 
-const ehClube = l => l.opTipo === 'Clube' && !l.operacaoId;
+el('acCia').onchange = renderContasAcumulo;
+el('acTodos').onclick  = ()=>{ S.responsaveis.forEach(r=>{ if(S.contas.some(c=>c.respId===r.id)) acParceirosSel.add(r.id); }); renderAcumulo(); };
+el('acLimpar').onclick = ()=>{ acParceirosSel.clear(); renderAcumulo(); };
 
-/* etapa 1: confere os dados e só então mostra as contas */
-el('btnAbrirClube').onclick = ()=>{
-  const cia = nomeDoClube();
-  if(!cia){ alert('Escolha o programa. Em "Outros", informe o nome.'); return; }
-  const data = el('clData').value;
-  if(!data){ alert('Informe a data.'); return; }
-  const valor  = parseFloat(el('clValor').value)  || 0;
-  const pontos = parseFloat(el('clPontos').value) || 0;
-  if(pontos <= 0 && valor <= 0){ alert('Informe o valor do clube ou os pontos recebidos.'); return; }
-  if(fechado(mesKey(data))){ alert('O mês desta data está fechado. Reabra em Ajustes.'); return; }
-
-  el('clParams').innerHTML = [
-    cia, data.split('-').reverse().join('/'),
-    'Valor: ' + money(valor), 'Pontos: ' + num(pontos),
-    'Investidor: ' + (el('clInvestidor').value || INVESTIDORES[0])
-  ].map(t=>`<span>${esc(t)}</span>`).join('');
-
-  el('boxLancarClube').hidden = false;
-  renderContasClube();
-  el('boxLancarClube').scrollIntoView({behavior:'smooth', block:'start'});
-};
-
-el('clFechar').onclick = ()=>{ el('boxLancarClube').hidden = true; };
-
-/* etapa 2: grava nas contas marcadas */
-el('btnLancarClube').onclick = ()=>{
-  const cia = nomeDoClube();
-  if(!cia){ alert('Informe o nome do programa.'); return; }
-  const contas = marcadasClube();
-  if(!contas.length){ alert('Marque ao menos uma conta.'); return; }
-  const data = el('clData').value;
+el('btnLancarAcumulo').onclick = ()=>{
+  const cia = el('acCia').value, data = el('acData').value, taxa = taxaAcumulo(cia);
+  if(!cia){ alert('Escolha a companhia.'); return; }
   if(!data){ alert('Informe a data.'); return; }
   if(fechado(mesKey(data))){ alert('O mês desta data está fechado. Reabra em Ajustes.'); return; }
+  if(!taxa){ alert(`Defina o valor fixo de ${cia} em Ajustes › Acúmulo cartão.`); return; }
+  const ls = linhasAcumulo();
+  if(!ls.length){ alert('Informe os pontos de ao menos uma conta.'); return; }
 
-  const valor  = parseFloat(el('clValor').value)  || 0;
-  const pontos = parseFloat(el('clPontos').value) || 0;
-  if(pontos <= 0 && valor <= 0){ alert('Informe o valor do clube ou os pontos recebidos.'); return; }
-
-  garantirCadastros(cia);
-  const investidor = el('clInvestidor').value || INVESTIDORES[0];
-  contas.forEach(contaId=>{
+  garantirCadastros(cia, FONTE_ACUMULO);
+  ls.forEach(x=>{
     S.lancamentos.push({
-      id:uid(), operacaoId:'', opRef:'Clube ' + cia, opTipo:'Clube',
-      contaId, data, cia, fonte:'CLUBE', investidor,
-      milhas:pontos, cpmVenda:0, cpmCusto:0,
-      valor:valor, custo:0, resultado:valor, obs:'clube'
+      id:uid(), operacaoId:'', opRef:TIPO_ACUMULO + ' ' + cia, opTipo:TIPO_ACUMULO,
+      contaId:x.conta.id, data, cia, fonte:FONTE_ACUMULO, investidor:'PARCEIRO',
+      milhas:x.pontos, pontosUsados:0, custoManual:null, cpmVenda:taxa, cpmCusto:0,
+      valor:x.valor, custo:0, resultado:x.valor, obs:'acúmulo cartão'
     });
+    delete acPontos[x.conta.id];
   });
   save();
   el('mesRef').value = mesKey(data);
-  el('boxLancarClube').hidden = true;
   refreshAll();
-  alert(contas.length + ' clube(s) lançado(s).');
+  alert(ls.length + ' acúmulo(s) lançado(s).');
 };
 
-el('clTodas').onclick   = ()=>{ el('clContas').querySelectorAll('[data-cl]').forEach(i=>i.checked=true);  totaisClube(); };
-el('clNenhuma').onclick = ()=>{ el('clContas').querySelectorAll('[data-cl]').forEach(i=>i.checked=false); totaisClube(); };
-['clValor','clPontos'].forEach(id=>el(id).oninput = totaisClube);
-
+/* --- Ajustes › Acúmulo cartão: valor fixo por companhia --- */
+function renderTaxasAcumulo(){
+  const box = el('listaTaxasAcumulo'); if(!box) return;
+  if(!S.cias.length){ box.innerHTML = '<div class="empty">Cadastre as companhias em Cadastros.</div>'; return; }
+  // não redesenha enquanto alguém digita num campo desta lista
+  if(box.contains(document.activeElement)) return;
+  box.innerHTML = `<div style="overflow-x:auto"><table class="list" style="max-width:520px">
+    <thead><tr><th>Companhia</th><th style="text-align:right">R$ por milheiro</th></tr></thead>
+    <tbody>${S.cias.map(c=>`<tr>
+      <td style="color:${esc(c.cor||'#12304C')};font-weight:700">${esc(c.nome)}</td>
+      <td style="text-align:right"><input type="number" step="0.01" min="0" data-taxa="${esc(c.nome)}"
+        value="${(S.cfg.acumuloCartao||{})[c.nome] ?? ''}" placeholder="0,00" style="width:120px;text-align:right"></td>
+    </tr>`).join('')}</tbody></table></div>`;
+  box.querySelectorAll('[data-taxa]').forEach(i=>i.oninput=()=>{
+    const v = i.value==='' ? null : (parseFloat(i.value)||0);
+    if(v===null) delete S.cfg.acumuloCartao[i.dataset.taxa];
+    else S.cfg.acumuloCartao[i.dataset.taxa] = v;
+    save(); renderContasAcumulo();
+  });
+}
 
 /* --- editar qualquer lançamento já feito numa conta ---
    Clube e operação usam o mesmo diálogo; o que muda são os campos
    e o que é recalculado ao salvar. */
 let lancEditando = null;
+let edCustoOrig = 0, edCustoAuto = false;
 
 function abrirEditarLanc(id){
   const l = S.lancamentos.find(x=>x.id===id); if(!l) return;
   if(fechado(mesKey(l.data))){ alert('O mês deste lançamento está fechado. Reabra em Ajustes.'); return; }
   lancEditando = id;
-  const clube = ehClube(l);
+  const clube = ehClube(l), acum = ehAcumulo(l), avulso = clube || acum;
   const o = opById(l.operacaoId);
 
-  el('edLancTitulo').textContent = clube ? 'Editar clube' : 'Editar lançamento';
-  el('edLancParams').innerHTML = clube ? '' :
-    [o ? o.ref : (l.opRef||'—'), l.cia, l.fonte,
-     'Venda: ' + money(l.cpmVenda) + '/mil'].map(t=>`<span>${esc(t)}</span>`).join('');
+  el('edLancTitulo').textContent = clube ? 'Editar clube' : acum ? 'Editar acúmulo cartão' : 'Editar lançamento';
+  el('edLancParams').innerHTML = clube ? '' : acum
+    ? [TIPO_ACUMULO, 'Investidor: PARCEIRO'].map(t=>`<span>${esc(t)}</span>`).join('')
+    : [o ? o.ref : (l.opRef||'—'), l.cia, l.fonte,
+       'Venda: ' + money(l.cpmVenda) + '/mil'].map(t=>`<span>${esc(t)}</span>`).join('');
 
   el('edClConta').innerHTML = S.contas.map(c=>`<option value="${c.id}" ${c.id===l.contaId?'selected':''}>${esc(c.nome)}</option>`).join('');
   el('edClCia').innerHTML   = S.cias.map(c=>`<option ${c.nome===l.cia?'selected':''}>${esc(c.nome)}</option>`).join('');
   el('edClInvestidor').innerHTML = opcoesInvestidor(l.investidor);
   el('edClData').value   = l.data;
   el('edClValor').value  = l.valor || 0;
-  el('edClPontos').value = l.milhas || 0;
+  // o campo mostra as milhas brutas; os pontos usados ficam no campo próprio
+  el('edClPontos').value = clube ? (l.milhas || 0) : milhasBrutas(l);
+  el('edUsados').value   = +l.pontosUsados || '';
+  edCustoOrig = +l.custo || 0; edCustoAuto = false;
+  el('edCusto').value    = edCustoOrig;
 
   // no clube o programa e o valor são digitados; na operação eles vêm dela
-  el('wrapEdClCia').hidden   = !clube;
+  el('wrapEdClCia').hidden   = !avulso;
   el('wrapEdClValor').hidden = !clube;
-  el('rotuloPontos').textContent = clube ? 'Pontos recebidos' : 'Milhas da promoção';
-  el('edLancAviso').textContent = clube ? ''
-    : 'Valor e custo são recalculados pela operação. No modo “custo total”, mudar as milhas refaz o rateio entre as contas.';
+  el('wrapEdCusto').hidden   = avulso;
+  el('wrapEdUsados').hidden  = clube;
+  el('edClInvestidor').disabled = acum;
+  el('rotuloPontos').textContent = clube ? 'Pontos recebidos' : acum ? 'Pontos que caíram' : 'Milhas da promoção';
+  el('edLancAviso').textContent = clube ? '' : acum
+    ? 'Valor = pontos líquidos ÷ 1.000 × valor fixo da companhia. O investidor do acúmulo é sempre o parceiro.'
+    : 'Milhas e custo desta conta podem ser ajustados sem mexer nas outras contas nem no custo total da operação.';
 
   previaEdLanc();
   el('dlgClube').showModal();
+}
+
+/* monta a linha editada como o motor de cálculo espera */
+function linhaEditada(l){
+  const brutas = parseFloat(el('edClPontos').value)||0;
+  const usados = Math.min(brutas, Math.max(0, parseFloat(el('edUsados').value)||0));
+  const custoCampo = centavos(parseFloat(el('edCusto').value)||0);
+  let custoManual = temManual(l) ? l.custoManual : null;
+  if(edCustoAuto) custoManual = null;
+  else if(Math.abs(custoCampo - edCustoOrig) > CENTAVO) custoManual = custoCampo;
+  // no rateio por custo total, mudar as milhas mexeria nas outras contas:
+  // congela o custo desta conta para isso não acontecer
+  const o = opById(l.operacaoId);
+  if(o && o.modo==='total' && custoManual===null && !edCustoAuto && brutas !== milhasBrutas(l)) custoManual = edCustoOrig;
+  return {...l, milhas:brutas-usados, pontosUsados:usados, custoManual, investidor:el('edClInvestidor').value};
 }
 
 /* prévia ao vivo do diálogo: trocar investidor, milhas ou valor mostra na hora
    quanto essa conta passa a render, pela mesma regra do motor de cálculo */
 function previaEdLanc(){
   const l = S.lancamentos.find(x=>x.id===lancEditando); if(!l) return;
-  const inv = el('edClInvestidor').value, pontos = parseFloat(el('edClPontos').value)||0;
+  const inv = el('edClInvestidor').value;
   let valor, custo;
   if(ehClube(l)){ valor = centavos(parseFloat(el('edClValor').value)||0); custo = 0; }
+  else if(ehAcumulo(l)){
+    const x = linhaEditada(l);
+    const taxa = taxaAcumulo(el('edClCia').value) || +l.cpmVenda || 0;
+    valor = centavos(x.milhas/1000*taxa); custo = 0;
+  }
   else{
-    const o = opById(l.operacaoId);
+    const o = opById(l.operacaoId), linha = linhaEditada(l);
     if(o){
       const ls = S.lancamentos.filter(x=>x.operacaoId===o.id);
-      const calc = calcularOperacao(o, ls.map(x=>x.id===l.id ? {milhas:pontos, investidor:inv} : x));
+      const calc = calcularOperacao(o, ls.map(x=>x.id===l.id ? linha : x));
       ({valor, custo} = calc.itens[ls.findIndex(x=>x.id===l.id)]);
-    } else ({valor, custo} = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [{milhas:pontos, investidor:inv}]).itens[0]);
+    } else ({valor, custo} = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [linha]).itens[0]);
+    if(edCustoAuto) el('edCusto').value = custo;
   }
-  const res = ehClube(l) ? valor : calcResultado(valor, custo, inv);
+  const res = (ehClube(l) || ehAcumulo(l)) ? valor : calcResultado(valor, custo, inv);
   el('edLancPrevia').innerHTML = `
     <div><span>Valor (venda)</span><b>${money(valor)}</b></div>
     <div><span>Custo${inv==='PARCEIRO'&&custo?' · bancado pelo parceiro':''}</span><b class="r" style="${inv==='PARCEIRO'?'text-decoration:line-through;opacity:.6':''}">${custo?money(custo):'—'}</b></div>
     <div><span>Resultado da conta</span><b class="${res>=0?'g':'r'}">${money(res)}</b></div>
     <div class="push"></div>`;
 }
-['edClInvestidor','edClPontos','edClValor'].forEach(id=>{ el(id).addEventListener('input', previaEdLanc); el(id).addEventListener('change', previaEdLanc); });
+['edClInvestidor','edClPontos','edClValor','edUsados','edClCia'].forEach(id=>{ el(id).addEventListener('input', previaEdLanc); el(id).addEventListener('change', previaEdLanc); });
+el('edCusto').addEventListener('input', ()=>{ edCustoAuto = false; previaEdLanc(); });
+el('edCustoAuto').onclick = ()=>{ edCustoAuto = true; previaEdLanc(); };
 
 el('salvarClube').onclick = ()=>{
   const l = S.lancamentos.find(x=>x.id===lancEditando); if(!l) return;
-  const clube = ehClube(l);
+  const clube = ehClube(l), acum = ehAcumulo(l);
   const data = el('edClData').value;
   if(!data){ alert('Informe a data.'); return; }
   if(fechado(mesKey(data))){ alert('O mês desta data está fechado.'); return; }
 
-  const pontos = parseFloat(el('edClPontos').value) || 0;
-  l.contaId    = el('edClConta').value;
-  l.data       = data;
-  l.investidor = el('edClInvestidor').value;
-  l.milhas     = pontos;
+  const brutas = parseFloat(el('edClPontos').value) || 0;
+  const usados = Math.max(0, parseFloat(el('edUsados').value)||0);
+  if(!clube && usados > brutas){ alert('Os pontos utilizados não podem passar dos pontos da conta.'); return; }
 
   if(clube){
     const valor = parseFloat(el('edClValor').value) || 0;
-    if(pontos <= 0 && valor <= 0){ alert('Informe o valor ou os pontos.'); return; }
+    if(brutas <= 0 && valor <= 0){ alert('Informe o valor ou os pontos.'); return; }
     const cia = el('edClCia').value;
-    Object.assign(l, {cia, opRef:'Clube ' + cia, fonte:'CLUBE',
+    Object.assign(l, {contaId:el('edClConta').value, data, investidor:el('edClInvestidor').value,
+                      milhas:brutas, cia, opRef:'Clube ' + cia, fonte:'CLUBE',
+                      valor, custo:0, resultado:valor});
+  }else if(acum){
+    const cia = el('edClCia').value;
+    const taxa = taxaAcumulo(cia) || +l.cpmVenda || 0;
+    const valor = centavos((brutas-usados)/1000*taxa);
+    Object.assign(l, {contaId:el('edClConta').value, data, investidor:'PARCEIRO',
+                      milhas:brutas-usados, pontosUsados:usados, cia, cpmVenda:taxa,
+                      opRef:TIPO_ACUMULO + ' ' + cia, fonte:FONTE_ACUMULO,
                       valor, custo:0, resultado:valor});
   }else{
+    const x = linhaEditada(l);
+    Object.assign(l, {contaId:el('edClConta').value, data, investidor:x.investidor,
+                      milhas:x.milhas, pontosUsados:x.pontosUsados, custoManual:x.custoManual});
     const o = opById(l.operacaoId);
-    if(o) recalcularOperacao(o);          // refaz valor, custo e o rateio
+    if(o) recalcularOperacao(o);          // só esta conta muda: as outras mantêm valor e custo
     else {
       // operação apagada: recalcula só esta conta com os CPMs que ela guardou
-      const x = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [l]).itens[0];
-      l.valor = x.valor; l.custo = x.custo; l.resultado = x.resultado;
+      const r = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [l]).itens[0];
+      l.valor = r.valor; l.custo = r.custo; l.resultado = r.resultado;
     }
   }
   save(); el('dlgClube').close(); refreshAll();
@@ -4096,8 +4204,7 @@ function refreshAll(){
   }
 
   renderFiltroContas(); contarFiltros();
-  renderOps(); renderProgramasClube(); renderInvestidorClube();
-  if(el('boxLancarClube') && !el('boxLancarClube').hidden) renderContasClube();
+  renderOps(); renderAcumulo(); renderTaxasAcumulo();
   renderLancamentos(); renderFinanceiro();
   renderExtrato(); renderCadastros(); renderAcessos(); renderFechar(); renderStatusNuvem(); renderStatusVersao();
   renderLateral();
@@ -4118,7 +4225,7 @@ window.__aplicarEstadoRemoto = function(estado, papel, rid){
   const meses=[...new Set(S.lancamentos.map(l=>mesKey(l.data)))].sort();
   const ini = meses.length?meses[meses.length-1]:new Date().toISOString().slice(0,7);
   el('mesRef').value=ini; el('lancMes').value=ini; el('opData').value=ini+'-15';
-  el('clData').value = new Date().toISOString().slice(0,10);
+  el('acData').value = new Date().toISOString().slice(0,10);
   el('cfgTitulo').value=S.cfg.titulo||'Fechamento Mensal';
   el('cfgTopN').value=S.cfg.topN||3;
   el('loginParceiro').hidden = true;
@@ -4270,7 +4377,7 @@ window.__erroAcesso = function(e, etapa, email, uid){
   const ini = meses.length?meses[meses.length-1]:new Date().toISOString().slice(0,7);
   el('mesRef').value=ini; el('lancMes').value=ini;
   el('opData').value = ini+'-15';
-  el('clData').value = new Date().toISOString().slice(0,10);
+  el('acData').value = new Date().toISOString().slice(0,10);
   el('cfgTitulo').value=S.cfg.titulo||'Fechamento Mensal';
   el('cfgTopN').value=S.cfg.topN||3;
   refreshAll();
@@ -4415,10 +4522,11 @@ if (window.MP_USA_FIREBASE) {
         contaId: l.contaId, contaNome: conta.nome || '', respId: conta.respId || '',
         investidor: l.investidor || 'MILHAS PLUS',
         respEmail: emailDe(conta.respId), data: l.data, cia: l.cia, fonte: l.fonte,
-        milhas: l.milhas || 0, cpmVenda: l.cpmVenda || 0,
+        milhas: l.milhas || 0, pontosUsados: l.pontosUsados || 0, cpmVenda: l.cpmVenda || 0,
         valor: l.valor || 0, resultado: l.resultado || 0
       };
-      out[chave('custos', l.id)] = { custo: l.custo || 0, cpmCusto: l.cpmCusto || 0 };
+      out[chave('custos', l.id)] = { custo: l.custo || 0, cpmCusto: l.cpmCusto || 0,
+        custoManual: (l.custoManual === undefined || l.custoManual === '') ? null : l.custoManual };
     });
     S.pagamentos.forEach(p => out[chave('pagamentos', p.id)] =
       { respId: p.respId, respEmail: emailDe(p.respId), mes: p.mes, valor: p.valor, data: p.data, por: p.por || '', comprovante: p.comprovante || '' });
