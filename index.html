@@ -1591,6 +1591,7 @@ body.parceiro .subnav{display:none}
       <div class="field"><label for="edClInvestidor">Investidor</label><select id="edClInvestidor"></select></div>
       <div class="field" id="wrapEdClValor"><label for="edClValor">Valor do clube (R$)</label><input type="number" id="edClValor" step="0.01"></div>
       <div class="field"><label for="edClPontos" id="rotuloPontos">Pontos recebidos</label><input type="number" id="edClPontos"></div>
+      <div class="field" id="wrapEdCpm"><label for="edCpmConta">Valor do milheiro desta conta (R$)</label><input type="number" id="edCpmConta" step="0.01"></div>
       <div class="field" id="wrapEdCusto"><label for="edCusto">Custo desta conta (R$)</label><input type="number" id="edCusto" step="0.01">
         <button type="button" class="mini-add" id="edCustoAuto" style="margin-top:6px;align-self:flex-start">usar custo da operação</button></div>
     </div>
@@ -1831,9 +1832,12 @@ function ratear(total, pesos){
                      então as outras contas não mudam.
    · custoManual   = custo ajustado à mão para esta conta; fica fixo e não mexe
                      no custo das demais.
+   · cpmManual     = CPM de venda ajustado à mão só desta conta; o valor dela
+                     passa a ser milhas ÷ 1.000 × esse CPM, sem mexer nas outras.
    · modo "fixo"   → cada conta custa op.custoConta; custo total = fixo × nº de contas */
 function milhasBrutas(l){ return (+l.milhas||0) + Math.max(0, +l.pontosUsados||0); }
 function temManual(l){ return l.custoManual !== null && l.custoManual !== undefined && l.custoManual !== ''; }
+function temCpmManual(l){ return l.cpmManual !== null && l.cpmManual !== undefined && l.cpmManual !== ''; }
 
 function calcularOperacao(op, linhas){
   const liquidas = linhas.map(l=>+l.milhas||0);
@@ -1862,10 +1866,13 @@ function calcularOperacao(op, linhas){
                  : (op.modo==='total' || op.modo==='fixo') ? (totalBrutas ? somaCustos/(totalBrutas/1000) : 0)
                  : 0;
   const itens = linhas.map((l,i)=>{
-    const valor = centavos(liquidas[i]/1000*(+op.cpmVenda||0));
+    // CPM de venda: o da operação, ou o desta conta quando foi ajustado à mão
+    const cpmVenda = temCpmManual(l) ? (+l.cpmManual||0) : (+op.cpmVenda||0);
+    const valor = centavos(liquidas[i]/1000*cpmVenda);
     const custo = custos[i];
     return {milhas:liquidas[i], pontosUsados:Math.max(0,+l.pontosUsados||0),
-            custoManual: manual[i], investidor:l.investidor, valor, custo, cpmCusto,
+            custoManual: manual[i], cpmManual: temCpmManual(l) ? (+l.cpmManual||0) : null,
+            cpmVenda, investidor:l.investidor, valor, custo, cpmCusto,
             resultado: calcResultado(valor, custo, l.investidor)};
   });
   const soma = k => centavos(itens.reduce((a,x)=>a+x[k],0));
@@ -1927,6 +1934,7 @@ function migrar(){
     if(l.custo===undefined)  l.custo=0;
     if(l.pontosUsados===undefined) l.pontosUsados=0;
     if(l.custoManual===undefined)  l.custoManual=null;
+    if(l.cpmManual===undefined)    l.cpmManual=null;
     // lançamentos antigos herdam o investidor que estava na operação
     if(!l.investidor){
       const o = S.operacoes.find(x=>x.id===l.operacaoId);
@@ -2666,7 +2674,7 @@ function recalcularOperacao(o){
   ls.forEach((l,i)=>{
     const x = calc.itens[i];
     l.data=o.data; l.cia=o.cia; l.fonte=o.fonte; l.opRef=o.ref; l.opTipo=o.tipo;
-    l.cpmVenda=o.cpmVenda; l.cpmCusto=x.cpmCusto;
+    l.cpmVenda=x.cpmVenda; l.cpmCusto=x.cpmCusto;
     l.valor=x.valor; l.custo=x.custo; l.resultado=x.resultado;
   });
   if(o.modo==='fixo') o.custoTotal = custoTotalOp(o, ls.length);
@@ -2735,6 +2743,7 @@ function selecionadas(){
     const usados = j ? Math.min(brutas, Math.max(0,+j.pontosUsados||0)) : 0;
     return {contaId, brutas, milhas: brutas - usados, pontosUsados: usados,
       custoManual: j && temManual(j) ? j.custoManual : null,
+      cpmManual: j && temCpmManual(j) ? j.cpmManual : null,
       investidor: (el('contasPart').querySelector(`[data-inv="${contaId}"]`)||{}).value || INVESTIDORES[0]};
   }).filter(x=>x.brutas>0);
 }
@@ -2777,8 +2786,8 @@ el('btnLancarOp').onclick = ()=>{
     S.lancamentos.push({id:uid(),operacaoId:opAtual.id,opRef:opAtual.ref,opTipo:opAtual.tipo,
       contaId:s.contaId,data:opAtual.data,cia:opAtual.cia,fonte:opAtual.fonte,
       investidor:s.investidor,
-      milhas:x.milhas,pontosUsados:x.pontosUsados,custoManual:x.custoManual,
-      cpmVenda:opAtual.cpmVenda,cpmCusto:x.cpmCusto,
+      milhas:x.milhas,pontosUsados:x.pontosUsados,custoManual:x.custoManual,cpmManual:x.cpmManual,
+      cpmVenda:x.cpmVenda,cpmCusto:x.cpmCusto,
       valor:x.valor,custo:x.custo,resultado:x.resultado,obs:''});
   });
   if(opAtual.modo==='fixo') opAtual.custoTotal = custoTotalOp(opAtual, sel.length);
@@ -3314,7 +3323,7 @@ function renderTaxasAcumulo(){
    Clube e operação usam o mesmo diálogo; o que muda são os campos
    e o que é recalculado ao salvar. */
 let lancEditando = null;
-let edCustoOrig = 0, edCustoAuto = false;
+let edCustoOrig = 0, edCustoAuto = false, edCpmOrig = 0;
 
 function abrirEditarLanc(id){
   const l = S.lancamentos.find(x=>x.id===id); if(!l) return;
@@ -3339,12 +3348,15 @@ function abrirEditarLanc(id){
   el('edUsados').value   = +l.pontosUsados || '';
   edCustoOrig = +l.custo || 0; edCustoAuto = false;
   el('edCusto').value    = edCustoOrig;
+  edCpmOrig = temCpmManual(l) ? (+l.cpmManual||0) : (o ? (+o.cpmVenda||0) : (+l.cpmVenda||0));
+  el('edCpmConta').value = edCpmOrig;
 
   // no clube o programa e o valor são digitados; na operação eles vêm dela
   el('wrapEdClCia').hidden   = !avulso;
   el('wrapEdClValor').hidden = !(clube || ajuste);
   el('wrapEdClValor').querySelector('label').textContent = ajuste ? 'Valor do milheiro (R$)' : 'Valor do clube (R$)';
   el('wrapEdCusto').hidden   = avulso;
+  el('wrapEdCpm').hidden     = avulso;
   // pontos usados pelo parceiro agora são lançados pelo Financeiro › Ajuste de valores
   el('wrapEdUsados').hidden  = true;
   el('edClInvestidor').disabled = acum || ajuste;
@@ -3371,7 +3383,12 @@ function linhaEditada(l){
   // congela o custo desta conta para isso não acontecer
   const o = opById(l.operacaoId);
   if(o && o.modo==='total' && custoManual===null && !edCustoAuto && brutas !== milhasBrutas(l)) custoManual = edCustoOrig;
-  return {...l, milhas:brutas-usados, pontosUsados:usados, custoManual, investidor:el('edClInvestidor').value};
+  // CPM de venda desta conta: só vira ajuste à mão quando o campo muda
+  const cpmCampo = parseFloat(el('edCpmConta').value)||0;
+  let cpmManual = temCpmManual(l) ? (+l.cpmManual||0) : null;
+  if(Math.abs(cpmCampo - edCpmOrig) > CENTAVO) cpmManual = cpmCampo;
+  return {...l, milhas:brutas-usados, pontosUsados:usados, custoManual, cpmManual,
+          investidor:el('edClInvestidor').value};
 }
 
 /* prévia ao vivo do diálogo: trocar investidor, milhas ou valor mostra na hora
@@ -3403,7 +3420,7 @@ function previaEdLanc(){
     <div><span>Resultado da conta</span><b class="${res>=0?'g':'r'}">${money(res)}</b></div>
     <div class="push"></div>`;
 }
-['edClInvestidor','edClPontos','edClValor','edUsados','edClCia'].forEach(id=>{ el(id).addEventListener('input', previaEdLanc); el(id).addEventListener('change', previaEdLanc); });
+['edClInvestidor','edClPontos','edClValor','edUsados','edClCia','edCpmConta'].forEach(id=>{ el(id).addEventListener('input', previaEdLanc); el(id).addEventListener('change', previaEdLanc); });
 el('edCusto').addEventListener('input', ()=>{ edCustoAuto = false; previaEdLanc(); });
 el('edCustoAuto').onclick = ()=>{ edCustoAuto = true; previaEdLanc(); };
 
@@ -3443,13 +3460,14 @@ el('salvarClube').onclick = ()=>{
   }else{
     const x = linhaEditada(l);
     Object.assign(l, {contaId:el('edClConta').value, data, investidor:x.investidor,
-                      milhas:x.milhas, pontosUsados:x.pontosUsados, custoManual:x.custoManual});
+                      milhas:x.milhas, pontosUsados:x.pontosUsados, custoManual:x.custoManual,
+                      cpmManual:x.cpmManual});
     const o = opById(l.operacaoId);
     if(o) recalcularOperacao(o);          // só esta conta muda: as outras mantêm valor e custo
     else {
       // operação apagada: recalcula só esta conta com os CPMs que ela guardou
       const r = calcularOperacao({cpmVenda:l.cpmVenda, modo:'cpm', cpmCusto:l.cpmCusto}, [l]).itens[0];
-      l.valor = r.valor; l.custo = r.custo; l.resultado = r.resultado;
+      l.cpmVenda = r.cpmVenda; l.valor = r.valor; l.custo = r.custo; l.resultado = r.resultado;
     }
   }
   save(); el('dlgClube').close(); refreshAll();
@@ -4764,6 +4782,7 @@ if (window.MP_USA_FIREBASE) {
         investidor: l.investidor || 'MILHAS PLUS',
         respEmail: emailDe(conta.respId), data: l.data, cia: l.cia, fonte: l.fonte,
         milhas: l.milhas || 0, pontosUsados: l.pontosUsados || 0, cpmVenda: l.cpmVenda || 0,
+        cpmManual: (l.cpmManual === undefined || l.cpmManual === '') ? null : l.cpmManual,
         valor: l.valor || 0, resultado: l.resultado || 0
       };
       out[chave('custos', l.id)] = { custo: l.custo || 0, cpmCusto: l.cpmCusto || 0,
