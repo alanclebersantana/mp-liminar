@@ -371,6 +371,7 @@ html[data-modo="pc"] .report-scroll{overflow:visible}
 html[data-modo="pc"] .wrap:has(#p-painel.on){max-width:none;margin-right:0;padding-right:22px}
 @media print{
   .lateral{display:none !important}
+  html[data-modo] #report.fx-recibo-modo{width:740px !important}
   html[data-modo] .wrap{margin:0 !important;padding:0 !important;max-width:none !important}
   html[data-modo] #report{width:640px !important;padding:0 !important;container-type:normal}
   .fx-duo{grid-template-columns:1fr !important}
@@ -434,6 +435,54 @@ html[data-modo="pc"] .wrap:has(#p-painel.on){max-width:none;margin-right:0;paddi
 .fx-status{margin-top:12px;font-size:12px;font-weight:800;padding:6px 10px;border-radius:8px;background:#FDF3DC;color:#8A5A0B}
 .fx-status.pago{background:#E3F4EA;color:#0F7A38}
 .fx-status.parcial{background:#E6EEF8;color:#1F4F86}
+
+/* ---- recibo do parceiro: total ao lado e contas em duas colunas ---- */
+.fx-lado{display:grid;grid-template-columns:250px minmax(0,1fr);gap:14px;align-items:start}
+.fx-cx{background:#12304C;color:#fff;border-radius:11px;padding:13px 15px}
+.fx-cx span{display:block;font-size:13.5px;color:#C9D7E6;font-weight:600}
+.fx-cx b{display:block;font-size:calc(25px * var(--escala));color:#F2C230;margin:4px 0 6px;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fx-cx em{display:block;font-style:normal;font-size:12px;color:#C9D7E6;line-height:1.5}
+.fx-contas{columns:2;column-gap:20px}
+.fx-contas div{break-inside:avoid;display:flex;justify-content:space-between;gap:8px;
+  padding:5px 0;border-bottom:1px solid #E6EBF0;font-size:12.5px}
+.fx-contas b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-contas i{font-style:normal;color:#8A97A6;font-size:10.5px}
+
+/* ---- extrato do recibo: um bloco por conta, em duas colunas ---- */
+.fx-ext2{columns:2;column-gap:18px;margin-top:2px}
+.fx-ext2 .fx-blk{break-inside:avoid;margin:0 0 10px;border:2px solid #12304C;border-radius:9px;
+  overflow:hidden;background:#fff}
+.fx-ext2 .fx-blk-h{display:flex;justify-content:space-between;gap:8px;background:#12304C;color:#fff;
+  padding:5px 9px;font-size:11.5px;font-weight:800}
+.fx-ext2 table{width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed}
+.fx-ext2 td{padding:2.5px 6px;border-bottom:1px solid #F0F3F6;vertical-align:top}
+.fx-ext2 tr:last-child td{border-bottom:0}
+.fx-ext2 .d{width:34px;color:#8A97A6}
+.fx-ext2 .m{width:56px;text-align:right;color:#4A5B6C;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-ext2 .v{width:84px;text-align:right;color:#0F7A38;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-ext2 .op{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-ext-tot{display:flex;justify-content:space-between;border-top:2px solid #12304C;
+  margin-top:2px;padding-top:5px;font-weight:800;font-size:12px}
+/* tela estreita: tudo em coluna única (imagem e PDF seguem com duas) */
+@media (max-width:760px){ .fx-lado{grid-template-columns:1fr} .fx-contas,.fx-ext2{columns:1} }
+html[data-modo="mobile"] #report:not(.fx-export) .fx-lado{grid-template-columns:1fr}
+html[data-modo="mobile"] #report:not(.fx-export) .fx-contas,
+html[data-modo="mobile"] #report:not(.fx-export) .fx-ext2{columns:1}
+
+/* ---- imagem e PDF: mesmo conteúdo, menos espaço em branco ----
+   a classe entra só na hora de gerar o arquivo; a tela não muda */
+#report.fx-compacto .fx{padding:2px 2px 0}
+#report.fx-compacto .fx-rec-top{padding:10px 14px}
+#report.fx-compacto .fx-rec-corpo{padding:10px 14px 12px}
+#report.fx-compacto .fx-stats{margin:5px 0 0}
+#report.fx-compacto .fx-sec{margin-top:9px}
+#report.fx-compacto .fx-sec h4{margin-bottom:2px}
+#report.fx-compacto .fx-cia{padding:3px 0}
+#report.fx-compacto .fx-status{margin-top:8px;padding:5px 9px}
+#report.fx-compacto .fx-tab th,#report.fx-compacto .fx-tab td{padding:4px 6px}
+#report.fx-compacto .fx-leitura{margin-top:10px;line-height:1.45}
+#report.fx-compacto .fx-pe{margin-top:6px}
 </style>
 <style>
 /* ===== acréscimos da demonstração (mesma linguagem visual do app) ===== */
@@ -2260,7 +2309,7 @@ window.addEventListener('resize', ajustarEscala);
 const extratoFechado = new Set();   // parceiros recolhidos no extrato (só na tela)
 const dataBR = d => (d||'').split('-').reverse().join('/');
 
-function extratoAgrupado(lancs, d){
+function extratoAgrupado(lancs, d, recibo){
   // parceiro → contas → lançamentos
   const porResp = {};
   lancs.forEach(l=>{
@@ -2271,6 +2320,23 @@ function extratoAgrupado(lancs, d){
   const grupos = respsAZ(Object.keys(porResp).map(id=>({id, nome:respNome(id)})));
   const soma = ls => ls.reduce((a,l)=>a+(+l.resultado||0),0);
   const umParceiro = grupos.length === 1;
+
+  // recibo de um parceiro: cada conta vira um bloco, e os blocos ficam em duas colunas
+  if(recibo && umParceiro){
+    const g = grupos[0];
+    const contas = contasAZ(Object.keys(porResp[g.id]).map(contaById));
+    return `<div class="fx-ext2">${contas.map(c=>{
+      const ls = porResp[g.id][c.id].slice().sort((x,y)=> x.data<y.data?-1:1);
+      return `<div class="fx-blk">
+        <div class="fx-blk-h"><b>${esc(c.nome)}</b><span>${money(soma(ls))}</span></div>
+        <table>${ls.map(l=>`<tr>
+          <td class="d">${dataBR(l.data).slice(0,5)}</td>
+          <td class="op"><i class="fx-dot" style="background:${ciaColor(l.cia)}"></i>${esc(l.opRef||'—')}</td>
+          <td class="m ${(+l.milhas||0)<0?'fx-neg':''}">${num(l.milhas)}</td>
+          <td class="v ${(+l.resultado||0)<0?'fx-neg':''}">${money(l.resultado)}</td></tr>`).join('')}</table>
+      </div>`;}).join('')}</div>
+      <div class="fx-ext-tot"><span>Total</span><span>${num(d.milhas)} milhas · ${money(d.total)}</span></div>`;
+  }
   return `<table class="fx-tab fx-ext">
     <colgroup><col style="width:15%"><col><col style="width:19%"><col style="width:20%"></colgroup>
     <thead><tr><th>Data</th><th>Conta / operação</th><th class="n">Milhas</th><th class="n">${parceiroLogado?'A receber':'Resultado'}</th></tr></thead>
@@ -2309,11 +2375,15 @@ function reciboParceiro(rid, d, mk_){
       <img src="logo.png" alt="" class="fx-logo">
     </div>
     <div class="fx-rec-corpo">
-      <div class="fx-rec-lbl">${sit==='pago'?'Você recebeu':'Você recebe'}</div>
-      <div class="fx-rec-valor ${r.total<0?'fx-neg':''}">${money(r.total)}</div>
-      <div class="fx-mut">Previsão: ${previsaoPagamento(rid, mk_)}${resp.pix?' · PIX '+esc(resp.pix):''}</div>
-      <div class="fx-rec-linhas">
-        ${contas.map(a=>`<div><span>${esc(a.conta.nome)} <em>${num(a.milhas)} milhas</em></span><b class="${a.total<0?'fx-neg':''}">${money(a.total)}</b></div>`).join('')}
+      <div class="fx-lado">
+        <div class="fx-cx">
+          <span>${sit==='pago'?'Você recebeu':'Você recebe'}</span>
+          <b class="${r.total<0?'fx-neg':''}">${money(r.total)}</b>
+          <em>Previsão: ${previsaoPagamento(rid, mk_)}${resp.pix?'<br>PIX '+esc(resp.pix):''}</em>
+        </div>
+        <div class="fx-contas">
+          ${contas.map(a=>`<div><span>${esc(a.conta.nome)} <i>${num(a.milhas)}</i></span><b class="${a.total<0?'fx-neg':''}">${money(a.total)}</b></div>`).join('')}
+        </div>
       </div>
       ${r.pago>CENTAVO?`<div class="fx-rec-linhas" style="border-top-style:solid">
         <div><span>Já pago</span><b>${money(r.pago)}</b></div>
@@ -2325,6 +2395,7 @@ function reciboParceiro(rid, d, mk_){
 
 function renderReport(){
   const mk_ = mesAtual(), d = agrupar(mk_), R = el('report');
+  R.classList.remove('fx-recibo-modo');
   if(d.vazio){
     R.innerHTML = `<div class="nodata"><b>Nenhum lançamento em ${esc(mesLabel(mk_))}.</b><br>
       Cadastre uma operação e lance nas contas.</div>`;
@@ -2383,7 +2454,7 @@ function renderReport(){
 
     <div class="fx-sec fx-quebra">
       <h4>Extrato por ${recibo?'conta':'parceiro e conta'}</h4>
-      ${extratoAgrupado(lancs, d)}
+      ${extratoAgrupado(lancs, d, recibo)}
     </div>
 
     ${!parceiroLogado && !recibo && nOps?`<div class="fx-sec fx-quebra">
@@ -2410,6 +2481,7 @@ function renderReport(){
     extratoFechado.has(g) ? extratoFechado.delete(g) : extratoFechado.add(g);
     renderReport();
   });
+  R.classList.toggle('fx-recibo-modo', !!recibo);
   requestAnimationFrame(ajustarEscala);
 }
 
@@ -4059,7 +4131,14 @@ el('btnWipe').onclick = ()=>{ if(!confirm('Recarregar os dados de exemplo?')) re
 /* =========================================================
    Exportações
    ========================================================= */
-el('btnPdf').onclick = ()=>window.print();
+el('btnPdf').onclick = ()=>{
+  const rep=el('report');
+  rep.classList.add('fx-compacto');
+  const limpar = ()=>rep.classList.remove('fx-compacto');
+  window.addEventListener('afterprint', limpar, {once:true});
+  setTimeout(limpar, 60000);          // rede de segurança se o afterprint não vier
+  window.print();
+};
 el('btnPng').onclick = async ()=>{
   const btn=el('btnPng'), old=btn.innerHTML; btn.textContent='Gerando…'; btn.disabled=true;
   try{
@@ -4067,10 +4146,10 @@ el('btnPng').onclick = async ()=>{
       s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
     const rep=el('report'), box=document.querySelector('.report-scroll');
     const tf=rep.style.transform, hb=box.style.height;
-    rep.style.transform='none'; box.style.height='auto'; rep.classList.add('fx-export');
+    rep.style.transform='none'; box.style.height='auto'; rep.classList.add('fx-export','fx-compacto');
     let cv;
     try{ cv = await html2canvas(rep,{scale:2,backgroundColor:'#FFFFFF',useCORS:true,windowWidth:900}); }
-    finally{ rep.classList.remove('fx-export'); rep.style.transform=tf; box.style.height=hb; }
+    finally{ rep.classList.remove('fx-export','fx-compacto'); rep.style.transform=tf; box.style.height=hb; }
     const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='fechamento-'+mesAtual()+'.png'; a.click();
   }catch(err){ alert('Não deu para gerar a imagem agora. Use "Salvar em PDF".'); }
   finally{ btn.innerHTML=old; btn.disabled=false; }
