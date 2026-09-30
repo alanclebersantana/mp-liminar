@@ -4195,16 +4195,19 @@ el('btnPng').onclick = async ()=>{
 el('btnZap').onclick = ()=>{
   const mk_=mesAtual(), d=agrupar(mk_);
   if(d.vazio){ alert('Não há lançamentos neste mês.'); return; }
-  let t=`*${S.cfg.titulo||'Fechamento Mensal'} — ${mesLabel(mk_)}*\n\n`;
-  t+=`*Resultado do mês:* ${money(d.total)}\n*Milhas:* ${num(d.milhas)}\n*Custo:* ${money(d.custo)}\n\n*Por companhia*\n`;
+  // com um parceiro selecionado o texto leva o nome dele e fala em "você recebe"
+  const rid = parceiroLogado || (S.filtro.resp!=='todos' && S.filtro.resp!=='' ? S.filtro.resp : null);
+  const resp = rid ? respById(rid) : null;
+  const total = resp ? ((d.responsaveis.find(r=>r.id===rid)||{}).total ?? d.total) : d.total;
+
+  let t=`*${S.cfg.titulo||'Fechamento Mensal'} — ${mesLabel(mk_)}${resp?' · '+resp.nome:''}*\n\n`;
+  t+=`Milhas: ${num(d.milhas)}\n\nPor companhia:\n`;
   d.cias.forEach(c=> t+=`• ${c.nome}: ${money(c.valor)} (${c.pct.toFixed(1).replace('.',',')}%)\n`);
-  t+=`\n*Por parceiro*\n`;
-  d.responsaveis.forEach(r=> t+=`• ${r.nome}: ${money(r.total)} — ${
-    r.situacao==='pago' ? 'pago'
-    : r.situacao==='parcial' ? 'pago '+money(r.pago)+', falta '+money(r.saldo)
-    : 'a pagar'}\n`);
-  t+=`\n*Consolidado:* ${money(d.total)}`;
-  const fa=filtrosAtivos(); if(fa.length) t+=`\n\n_Filtros: ${fa.join(' · ')}_`;
+  t+=`\n*${resp?'Você recebe':'Resultado do mês'}:* ${money(total)}`;
+  if(resp && resp.pix) t+=`\nPIX: ${resp.pix}`;
+  // o parceiro já está no título: não repete no rodapé de filtros
+  const fa=filtrosAtivos().filter(x=>!(resp && x.startsWith('Parceiro:')));
+  if(fa.length) t+=`\n\n_Filtros: ${fa.join(' · ')}_`;
   window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
 };
 
