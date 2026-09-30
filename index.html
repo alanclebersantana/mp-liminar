@@ -458,6 +458,8 @@ html[data-modo="pc"] .wrap:has(#p-painel.on){max-width:none;margin-right:0;paddi
 
 /* ---- recibo do parceiro: total ao lado e contas em duas colunas ---- */
 .fx-lado{display:grid;grid-template-columns:250px minmax(0,1fr);gap:14px;align-items:start}
+/* uma conta só: nada de coluna lateral — o total ocupa a largura toda */
+.fx-lado.fx-uma{grid-template-columns:1fr;gap:10px}
 .fx-cx{background:#12304C;color:#fff;border-radius:11px;padding:13px 15px}
 .fx-cx span{display:block;font-size:13.5px;color:#C9D7E6;font-weight:600}
 .fx-cx b{display:block;font-size:calc(25px * var(--escala));color:#F2C230;margin:4px 0 6px;
@@ -472,6 +474,7 @@ html[data-modo="pc"] .wrap:has(#p-painel.on){max-width:none;margin-right:0;paddi
 /* ---- extrato do recibo: um bloco por conta, em duas colunas ---- */
 .fx-ext2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 18px;align-items:start;margin-top:2px}
 .fx-col{min-width:0}
+.fx-ext2.fx-uma{grid-template-columns:1fr}
 .fx-ext2 .fx-blk{break-inside:avoid;margin:0 0 10px;border:2px solid #12304C;border-radius:9px;
   overflow:hidden;background:#fff}
 .fx-ext2 .fx-blk-h{display:flex;justify-content:space-between;gap:8px;background:#12304C;color:#fff;
@@ -2362,6 +2365,10 @@ function extratoAgrupado(lancs, d, recibo){
     // na mesma altura e nenhuma conta é empurrada sozinha para a outra página
     const col = [[],[]], alt = [0,0];
     contas.map(bloco).forEach(b=>{ const i = alt[0]<=alt[1] ? 0 : 1; col[i].push(b.html); alt[i]+=b.peso; });
+    if(contas.length===1) return `<div class="fx-ext2 fx-uma">
+        <div class="fx-col">${col[0].join('')}${col[1].join('')}</div>
+      </div>
+      <div class="fx-ext-tot"><span>Total</span><span>${num(d.milhas)} milhas · ${money(d.total)}</span></div>`;
     return `<div class="fx-ext2">
         <div class="fx-col">${col[0].join('')}</div>
         <div class="fx-col">${col[1].join('')}</div>
@@ -2406,7 +2413,7 @@ function reciboParceiro(rid, d, mk_){
       <img src="logo.png" alt="" class="fx-logo">
     </div>
     <div class="fx-rec-corpo">
-      <div class="fx-lado">
+      <div class="fx-lado${contas.length===1?' fx-uma':''}">
         <div class="fx-cx">
           <span>${sit==='pago'?'Você recebeu':'Você recebe'}</span>
           <b class="${r.total<0?'fx-neg':''}">${money(r.total)}</b>
